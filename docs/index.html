@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0f766e">
     <title>筑後大堰 若津 水位・潮位モニター</title>
-    <link rel="manifest" href="./manifest.json?v=13">
+    <link rel="manifest" href="./manifest.json?v=14">
     <link rel="icon" href="./icons/icon-192.png">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
-    <link rel="stylesheet" href="./style.css?v=13">
+    <link rel="stylesheet" href="./style.css?v=14">
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
-    <script src="./app.js?v=13" defer></script>
+    <script src="./app.js?v=14" defer></script>
   </head>
   <body>
     <main class="app-shell">
@@ -41,14 +41,17 @@
 
       <section class="status-grid" aria-label="現在値">
         <article class="metric">
-          <span class="metric-label">現在下流水位</span>
-          <strong id="currentDownstreamLevel">--</strong>
-          <small>筑後大堰</small>
-        </article>
-        <article class="metric">
-          <span class="metric-label">現在上流水位</span>
-          <strong id="currentUpstreamLevel">--</strong>
-          <small>筑後大堰</small>
+          <span class="metric-label">現在水位</span>
+          <div class="water-readings">
+            <div class="water-reading">
+              <span>下流</span>
+              <strong id="currentDownstreamLevel">--</strong>
+            </div>
+            <div class="water-reading">
+              <span>上流</span>
+              <strong id="currentUpstreamLevel">--</strong>
+            </div>
+          </div>
         </article>
         <article class="metric">
           <span class="metric-label">現在潮位</span>
@@ -74,15 +77,18 @@
             <strong id="mobileCurrentTide">--</strong>
             <small id="mobileTideTrend">--</small>
           </aside>
-          <aside class="mobile-water-panel mobile-water-downstream" aria-label="現在下流水位">
-            <span>下流水位</span>
-            <strong id="mobileDownstreamLevel">--</strong>
-            <small>筑後大堰</small>
-          </aside>
-          <aside class="mobile-water-panel mobile-water-upstream" aria-label="現在上流水位">
-            <span>上流水位</span>
-            <strong id="mobileUpstreamLevel">--</strong>
-            <small>筑後大堰</small>
+          <aside class="mobile-water-panel" aria-label="現在水位">
+            <span>現在水位</span>
+            <dl>
+              <div>
+                <dt>下流</dt>
+                <dd id="mobileDownstreamLevel">--</dd>
+              </div>
+              <div>
+                <dt>上流</dt>
+                <dd id="mobileUpstreamLevel">--</dd>
+              </div>
+            </dl>
           </aside>
           <div id="chart" class="chart" role="img" aria-label="水位と潮位のグラフ"></div>
         </div>

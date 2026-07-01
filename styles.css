@@ -127,6 +127,29 @@ h1 {
   line-height: 1.15;
 }
 
+.water-readings {
+  display: grid;
+  gap: 8px;
+}
+
+.water-reading {
+  display: grid;
+  grid-template-columns: 3em minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+}
+
+.water-reading span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.water-reading strong {
+  min-height: 1.35rem;
+  font-size: clamp(1.05rem, 4vw, 1.55rem);
+}
+
 .metric small {
   display: block;
   min-height: 1.1rem;
@@ -188,7 +211,7 @@ h1 {
   }
 
   .status-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr 1.35fr;
     gap: 12px;
   }
 
