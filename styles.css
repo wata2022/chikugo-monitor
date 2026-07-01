@@ -1,0 +1,214 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f7f6;
+  --surface: #ffffff;
+  --surface-soft: #e8f2ef;
+  --text: #13201f;
+  --muted: #5b6b68;
+  --line: #d6e1de;
+  --primary: #0f766e;
+  --primary-dark: #0b5c56;
+  --water: #1667b7;
+  --tide: #c2410c;
+  --shadow: 0 18px 48px rgba(14, 47, 43, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.12), transparent 240px),
+    var(--bg);
+  color: var(--text);
+  font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", Meiryo, system-ui, sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1120px, 100%);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: max(18px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 0 18px;
+}
+
+.eyebrow {
+  margin: 0 0 5px;
+  color: var(--primary-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 5.4vw, 2.25rem);
+  line-height: 1.24;
+  letter-spacing: 0;
+}
+
+.icon-button {
+  display: grid;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(15, 118, 110, 0.28);
+  cursor: pointer;
+}
+
+.icon-button span {
+  display: block;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.icon-button:disabled {
+  opacity: 0.65;
+}
+
+.icon-button:focus-visible,
+.range-button:focus-visible {
+  outline: 3px solid rgba(15, 118, 110, 0.28);
+  outline-offset: 3px;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.metric {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 28px rgba(14, 47, 43, 0.08);
+}
+
+.metric-wide {
+  grid-column: 1 / -1;
+}
+
+.metric-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.metric strong {
+  display: block;
+  min-height: 1.85rem;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.25rem, 5vw, 2rem);
+  line-height: 1.15;
+}
+
+.metric small {
+  display: block;
+  min-height: 1.1rem;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.chart-panel {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.range-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.range-button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.range-button.is-active {
+  background: var(--surface);
+  color: var(--primary-dark);
+  box-shadow: 0 7px 18px rgba(14, 47, 43, 0.12);
+}
+
+.chart {
+  width: 100%;
+  height: min(68vh, 620px);
+  min-height: 430px;
+}
+
+.message {
+  min-height: 1.2rem;
+  margin: 8px 2px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+@media (min-width: 760px) {
+  .app-shell {
+    padding: 28px 24px 34px;
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr 1fr 1.35fr;
+    gap: 12px;
+  }
+
+  .metric-wide {
+    grid-column: auto;
+  }
+
+  .chart-panel {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-shell {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .chart {
+    height: 58vh;
+    min-height: 360px;
+  }
+}
