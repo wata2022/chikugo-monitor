@@ -246,6 +246,54 @@ button {
   line-height: 1.2;
 }
 
+.mobile-water-panel {
+  position: absolute;
+  z-index: 2;
+  left: 8px;
+  display: grid;
+  width: 64px;
+  overflow: hidden;
+  border: 2px solid #76f7ff;
+  border-radius: 4px;
+  background: #061e33;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.mobile-water-downstream {
+  top: 150px;
+}
+
+.mobile-water-upstream {
+  top: 264px;
+}
+
+.mobile-water-panel > span {
+  padding: 5px 1px;
+  background: #76f7ff;
+  color: #06304a;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.mobile-water-panel strong {
+  padding: 10px 1px 7px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.mobile-water-panel small {
+  padding: 8px 2px;
+  border-top: 2px solid #76f7ff;
+  font-size: 0.64rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
 .chart {
   width: 100%;
   height: min(66vh, 660px);
@@ -351,6 +399,34 @@ button {
   .mobile-tide-panel small {
     padding: 6px 2px;
     font-size: 0.72rem;
+  }
+
+  .mobile-water-panel {
+    left: 4px;
+    width: 50px;
+  }
+
+  .mobile-water-downstream {
+    top: 112px;
+  }
+
+  .mobile-water-upstream {
+    top: 202px;
+  }
+
+  .mobile-water-panel > span {
+    padding: 3px 1px;
+    font-size: 0.66rem;
+  }
+
+  .mobile-water-panel strong {
+    padding: 8px 1px 5px;
+    font-size: 0.62rem;
+  }
+
+  .mobile-water-panel small {
+    padding: 6px 1px;
+    font-size: 0.56rem;
   }
 
   .chart {

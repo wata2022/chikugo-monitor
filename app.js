@@ -11,8 +11,8 @@ const state = {
 
 const elements = {
   chart: document.getElementById("chart"),
-  currentWaterLevel: document.getElementById("currentWaterLevel"),
-  currentWaterDetail: document.getElementById("currentWaterDetail"),
+  currentDownstreamLevel: document.getElementById("currentDownstreamLevel"),
+  currentUpstreamLevel: document.getElementById("currentUpstreamLevel"),
   currentTideLevel: document.getElementById("currentTideLevel"),
   currentTideDetail: document.getElementById("currentTideDetail"),
   lastUpdated: document.getElementById("lastUpdated"),
@@ -159,8 +159,8 @@ function getFilteredRows(rows, days) {
 function updateMetrics() {
   const latest = getLatestRow(state.rows);
   if (!latest) {
-    elements.currentWaterLevel.textContent = "--";
-    elements.currentWaterDetail.textContent = "--";
+    elements.currentDownstreamLevel.textContent = "--";
+    elements.currentUpstreamLevel.textContent = "--";
     elements.currentTideLevel.textContent = "--";
     elements.currentTideDetail.textContent = "若津";
     elements.lastUpdated.textContent = "--";
@@ -168,8 +168,8 @@ function updateMetrics() {
     return;
   }
 
-  elements.currentWaterLevel.textContent = formatNumber(latest.downstream, "TPm");
-  elements.currentWaterDetail.textContent = `上流 ${formatNumber(latest.upstream, "TPm")}`;
+  elements.currentDownstreamLevel.textContent = formatNumber(latest.downstream, "TPm");
+  elements.currentUpstreamLevel.textContent = formatNumber(latest.upstream, "TPm");
   elements.currentTideLevel.textContent = formatNumber(latest.tide, "cm", 0);
   elements.currentTideDetail.textContent = formatTideMeta(latest);
   elements.lastUpdated.textContent = formatDateTime(latest.datetime);

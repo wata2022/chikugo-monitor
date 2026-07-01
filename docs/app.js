@@ -1,5 +1,5 @@
 const DATA_URL = "./merged.csv";
-const APP_VERSION = "v12";
+const APP_VERSION = "v13";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -12,8 +12,8 @@ const state = {
 
 const elements = {
   chart: document.getElementById("chart"),
-  currentWaterLevel: document.getElementById("currentWaterLevel"),
-  currentWaterDetail: document.getElementById("currentWaterDetail"),
+  currentDownstreamLevel: document.getElementById("currentDownstreamLevel"),
+  currentUpstreamLevel: document.getElementById("currentUpstreamLevel"),
   currentTideLevel: document.getElementById("currentTideLevel"),
   currentTideDetail: document.getElementById("currentTideDetail"),
   lastUpdated: document.getElementById("lastUpdated"),
@@ -24,6 +24,8 @@ const elements = {
   mobileMoonAge: document.getElementById("mobileMoonAge"),
   mobileTideName: document.getElementById("mobileTideName"),
   mobileDateLabel: document.getElementById("mobileDateLabel"),
+  mobileDownstreamLevel: document.getElementById("mobileDownstreamLevel"),
+  mobileUpstreamLevel: document.getElementById("mobileUpstreamLevel"),
   message: document.getElementById("message"),
   refreshButtons: [
     document.getElementById("refreshButton"),
@@ -193,8 +195,8 @@ function getFilteredRows(rows, days) {
 function updateMetrics() {
   const latest = getLatestRow(state.rows);
   if (!latest) {
-    elements.currentWaterLevel.textContent = "--";
-    elements.currentWaterDetail.textContent = "--";
+    elements.currentDownstreamLevel.textContent = "--";
+    elements.currentUpstreamLevel.textContent = "--";
     elements.currentTideLevel.textContent = "--";
     elements.currentTideDetail.textContent = "若津";
     elements.lastUpdated.textContent = "--";
@@ -205,6 +207,8 @@ function updateMetrics() {
     elements.mobileMoonAge.textContent = "月齢 --";
     elements.mobileTideName.textContent = "--";
     elements.mobileDateLabel.textContent = "--";
+    elements.mobileDownstreamLevel.textContent = "--";
+    elements.mobileUpstreamLevel.textContent = "--";
     return;
   }
 
@@ -218,8 +222,8 @@ function updateMetrics() {
         ? "変化なし 0cm"
         : `${tideDiff > 0 ? "上げ幅" : "下げ幅"} ${Math.abs(tideDiff).toFixed(0)}cm`;
 
-  elements.currentWaterLevel.textContent = formatNumber(latest.downstream, "TPm");
-  elements.currentWaterDetail.textContent = `上流 ${formatNumber(latest.upstream, "TPm")}`;
+  elements.currentDownstreamLevel.textContent = formatNumber(latest.downstream, "TPm");
+  elements.currentUpstreamLevel.textContent = formatNumber(latest.upstream, "TPm");
   elements.currentTideLevel.textContent = formatNumber(latest.tide, "cm", 0);
   elements.currentTideDetail.textContent = formatTideMeta(latest);
   elements.lastUpdated.textContent = formatDateTime(latest.datetime);
@@ -232,6 +236,8 @@ function updateMetrics() {
     latest.moonAge === null ? "月齢 --" : `月齢 ${latest.moonAge.toFixed(1)}`;
   elements.mobileTideName.textContent = latest.tideName || "--";
   elements.mobileDateLabel.textContent = formatLongDate(latest.datetime);
+  elements.mobileDownstreamLevel.textContent = formatNumber(latest.downstream, "TPm");
+  elements.mobileUpstreamLevel.textContent = formatNumber(latest.upstream, "TPm");
 }
 
 function drawChart() {

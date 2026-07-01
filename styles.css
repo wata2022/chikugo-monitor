@@ -188,7 +188,7 @@ h1 {
   }
 
   .status-grid {
-    grid-template-columns: 1fr 1fr 1.35fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
   }
 
