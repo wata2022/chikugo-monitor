@@ -63,8 +63,9 @@ button {
 
 .bi-badge {
   display: grid;
+  grid-template-rows: 1fr auto auto;
   width: 78px;
-  height: 96px;
+  height: 108px;
   border: 4px solid #ffe300;
   background: #080808;
   color: #ffe300;
@@ -72,20 +73,42 @@ button {
   box-shadow: 0 0 0 1px rgba(255, 227, 0, 0.4);
 }
 
-.bi-badge strong {
+.moon-icon {
   display: grid;
+  position: relative;
   place-items: center;
-  background: #ffe300;
-  color: #071322;
-  font-size: 1.85rem;
-  line-height: 1;
+  background:
+    radial-gradient(circle at 38% 35%, #fff7b8 0 9%, transparent 10%),
+    radial-gradient(circle at 64% 58%, #d0b45b 0 5%, transparent 6%),
+    radial-gradient(circle at 48% 52%, #f5d66f 0 38%, #caa039 62%, #8f6f21 100%);
+}
+
+.moon-icon::after {
+  content: "";
+  width: 42%;
+  height: 64%;
+  border-radius: 999px;
+  background: rgba(8, 8, 8, 0.88);
+  transform: translateX(28%);
 }
 
 .bi-badge span {
   display: grid;
   place-items: center;
-  font-size: 1.08rem;
+  min-height: 22px;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.bi-badge small {
+  display: grid;
+  min-height: 20px;
+  place-items: center;
+  border-top: 1px solid rgba(255, 227, 0, 0.55);
+  color: #fff;
+  font-size: 0.86rem;
   font-weight: 800;
+  line-height: 1.1;
 }
 
 .mobile-title h1 {
@@ -242,16 +265,18 @@ button {
 
   .bi-badge {
     width: 62px;
-    height: 76px;
+    height: 86px;
     border: 3px solid #ffe300;
   }
 
-  .bi-badge strong {
-    font-size: 1.45rem;
+  .bi-badge span {
+    min-height: 18px;
+    font-size: 0.72rem;
   }
 
-  .bi-badge span {
-    font-size: 0.9rem;
+  .bi-badge small {
+    min-height: 17px;
+    font-size: 0.72rem;
   }
 
   .mobile-title h1 {

@@ -1,5 +1,5 @@
 const DATA_URL = "./merged.csv";
-const APP_VERSION = "v9";
+const APP_VERSION = "v10";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -21,6 +21,7 @@ const elements = {
   mobileCurrentTide: document.getElementById("mobileCurrentTide"),
   mobileTideTrend: document.getElementById("mobileTideTrend"),
   mobileMoonAge: document.getElementById("mobileMoonAge"),
+  mobileTideName: document.getElementById("mobileTideName"),
   mobileDateLabel: document.getElementById("mobileDateLabel"),
   message: document.getElementById("message"),
   refreshButton: document.getElementById("refreshButton"),
@@ -136,16 +137,6 @@ function formatTideMeta(row) {
   return parts.length ? `若津 / ${parts.join(" / ")}` : "若津";
 }
 
-function getLatestTideMetaRow(rows) {
-  for (let index = rows.length - 1; index >= 0; index -= 1) {
-    const row = rows[index];
-    if (row.tideName || row.moonAge !== null) {
-      return row;
-    }
-  }
-  return null;
-}
-
 function getLatestRow(rows) {
   for (let index = rows.length - 1; index >= 0; index -= 1) {
     const row = rows[index];
@@ -196,7 +187,8 @@ function updateMetrics() {
     elements.rowCount.textContent = "0件";
     elements.mobileCurrentTide.textContent = "--";
     elements.mobileTideTrend.textContent = "--";
-    elements.mobileMoonAge.textContent = "--";
+    elements.mobileMoonAge.textContent = "月齢 --";
+    elements.mobileTideName.textContent = "--";
     elements.mobileDateLabel.textContent = "--";
     return;
   }
@@ -219,15 +211,14 @@ function updateMetrics() {
     latest.tide === null ? "--" : `${latest.tide.toFixed(0)}cm`;
   elements.mobileTideTrend.textContent = tideTrend;
   elements.mobileMoonAge.textContent =
-    latest.moonAge === null ? "--" : latest.moonAge.toFixed(1);
+    latest.moonAge === null ? "月齢 --" : `月齢 ${latest.moonAge.toFixed(1)}`;
+  elements.mobileTideName.textContent = latest.tideName || "--";
   elements.mobileDateLabel.textContent = formatLongDate(latest.datetime);
 }
 
 function drawChart() {
   const rows = getFilteredRows(state.rows, state.days);
   const x = rows.map((row) => row.datetime);
-  const tideMetaRow = getLatestTideMetaRow(rows);
-  const tideMetaText = formatTideMeta(tideMetaRow).replace("若津 / ", "");
   const isMobile = window.matchMedia("(max-width: 520px)").matches;
   const colors = {
     downstream: "#f4ff27",
@@ -276,10 +267,6 @@ function drawChart() {
     {
       x,
       y: rows.map((row) => row.tide),
-      customdata: rows.map((row) => [
-        row.tideName || "--",
-        row.moonAge === null ? "--" : row.moonAge.toFixed(1),
-      ]),
       name: "潮位",
       type: "scatter",
       mode: "lines+markers",
@@ -290,8 +277,7 @@ function drawChart() {
         color: colors.tide,
         line: { color: "#ffffff", width: isMobile ? 1.2 : 1.4 },
       },
-      hovertemplate:
-        "%{x|%m/%d %H:%M}<br>潮位 %{y:.0f} cm<br>潮名 %{customdata[0]}<br>月齢 %{customdata[1]}<extra></extra>",
+      hovertemplate: "%{x|%m/%d %H:%M}<br>潮位 %{y:.0f} cm<extra></extra>",
       connectgaps: true,
     },
   ];
@@ -337,34 +323,13 @@ function drawChart() {
       titlefont: { size: isMobile ? 11 : 14 },
       tickfont: { size: isMobile ? 10 : 13 },
     },
-    annotations: tideMetaRow
-      ? [
-          {
-            text: `潮名 ${tideMetaRow.tideName || "--"} / 月齢 ${
-              tideMetaRow.moonAge === null ? "--" : tideMetaRow.moonAge.toFixed(1)
-            }`,
-            xref: "paper",
-            yref: "paper",
-            x: 1,
-            y: isMobile ? 1.12 : 1.1,
-            xanchor: "right",
-            yanchor: "bottom",
-            showarrow: false,
-            align: "right",
-            font: { size: isMobile ? 11 : 13, color: "#f4ff38" },
-          },
-        ]
-      : [],
+    annotations: [],
     hovermode: "x unified",
     dragmode: false,
   };
 
   Plotly.react(elements.chart, traces, layout, config);
-  elements.message.textContent = rows.length
-    ? tideMetaText
-      ? `表示期間の潮名・月齢: ${tideMetaText}`
-      : ""
-    : "表示できるデータがありません。";
+  elements.message.textContent = rows.length ? "" : "表示できるデータがありません。";
 }
 
 async function updateServiceWorker() {
