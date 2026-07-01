@@ -17,6 +17,10 @@ const elements = {
   currentTideDetail: document.getElementById("currentTideDetail"),
   lastUpdated: document.getElementById("lastUpdated"),
   rowCount: document.getElementById("rowCount"),
+  mobileCurrentTide: document.getElementById("mobileCurrentTide"),
+  mobileTideTrend: document.getElementById("mobileTideTrend"),
+  mobileMoonAge: document.getElementById("mobileMoonAge"),
+  mobileDateLabel: document.getElementById("mobileDateLabel"),
   message: document.getElementById("message"),
   refreshButton: document.getElementById("refreshButton"),
   rangeButtons: Array.from(document.querySelectorAll(".range-button")),
@@ -105,6 +109,17 @@ function formatDateTime(date) {
   }).format(date);
 }
 
+function formatLongDate(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return "--";
+  }
+  return new Intl.DateTimeFormat("ja-JP", {
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  }).format(date);
+}
+
 function formatTideMeta(row) {
   if (!row) {
     return "若津";
@@ -140,6 +155,19 @@ function getLatestRow(rows) {
   return null;
 }
 
+function getPreviousTideRow(rows, latest) {
+  if (!latest) {
+    return null;
+  }
+  for (let index = rows.length - 2; index >= 0; index -= 1) {
+    const row = rows[index];
+    if (row.datetime < latest.datetime && row.tide !== null) {
+      return row;
+    }
+  }
+  return null;
+}
+
 function getFilteredRows(rows, days) {
   if (!rows.length) {
     return [];
@@ -165,8 +193,20 @@ function updateMetrics() {
     elements.currentTideDetail.textContent = "若津";
     elements.lastUpdated.textContent = "--";
     elements.rowCount.textContent = "0件";
+    elements.mobileCurrentTide.textContent = "--";
+    elements.mobileTideTrend.textContent = "--";
+    elements.mobileMoonAge.textContent = "--";
+    elements.mobileDateLabel.textContent = "--";
     return;
   }
+
+  const previousTide = getPreviousTideRow(state.rows, latest);
+  const tideDiff =
+    previousTide && latest.tide !== null ? latest.tide - previousTide.tide : null;
+  const tideTrend =
+    tideDiff === null
+      ? "--"
+      : `${tideDiff >= 0 ? "上げ" : "下げ"} ${Math.abs(tideDiff).toFixed(0)}cm`;
 
   elements.currentWaterLevel.textContent = formatNumber(latest.downstream, "TPm");
   elements.currentWaterDetail.textContent = `上流 ${formatNumber(latest.upstream, "TPm")}`;
@@ -174,6 +214,12 @@ function updateMetrics() {
   elements.currentTideDetail.textContent = formatTideMeta(latest);
   elements.lastUpdated.textContent = formatDateTime(latest.datetime);
   elements.rowCount.textContent = `${state.rows.length}件`;
+  elements.mobileCurrentTide.textContent =
+    latest.tide === null ? "--" : `${latest.tide.toFixed(0)}cm`;
+  elements.mobileTideTrend.textContent = tideTrend;
+  elements.mobileMoonAge.textContent =
+    latest.moonAge === null ? "--" : latest.moonAge.toFixed(1);
+  elements.mobileDateLabel.textContent = formatLongDate(latest.datetime);
 }
 
 function drawChart() {
@@ -185,6 +231,7 @@ function drawChart() {
   const config = {
     responsive: true,
     displaylogo: false,
+    displayModeBar: !isMobile,
     scrollZoom: true,
     modeBarButtonsToRemove: ["lasso2d", "select2d"],
   };
@@ -232,12 +279,12 @@ function drawChart() {
 
   const layout = {
     autosize: true,
-    margin: isMobile ? { t: 42, r: 42, b: 44, l: 42 } : { t: 18, r: 54, b: 50, l: 52 },
-    paper_bgcolor: "#ffffff",
-    plot_bgcolor: "#ffffff",
+    margin: isMobile ? { t: 44, r: 40, b: 40, l: 42 } : { t: 18, r: 54, b: 50, l: 52 },
+    paper_bgcolor: isMobile ? "#083d63" : "#ffffff",
+    plot_bgcolor: isMobile ? "#0c5a87" : "#ffffff",
     font: {
       family: '"Yu Gothic", Meiryo, sans-serif',
-      color: "#13201f",
+      color: isMobile ? "#f5fbff" : "#13201f",
     },
     legend: {
       orientation: "h",
@@ -247,23 +294,23 @@ function drawChart() {
     },
     xaxis: {
       tickformat: isMobile ? "%m/%d" : "%m/%d\n%H:%M",
-      gridcolor: "#e5ecea",
+      gridcolor: isMobile ? "rgba(255,255,255,0.28)" : "#e5ecea",
       rangeslider: { visible: false },
       tickfont: { size: isMobile ? 10 : 12 },
       nticks: isMobile ? 4 : undefined,
     },
     yaxis: {
       title: "水位 TPm",
-      color: "#1667b7",
-      gridcolor: "#e5ecea",
-      zerolinecolor: "#d6e1de",
+      color: isMobile ? "#eaff00" : "#1667b7",
+      gridcolor: isMobile ? "rgba(255,255,255,0.26)" : "#e5ecea",
+      zerolinecolor: isMobile ? "rgba(255,255,255,0.55)" : "#d6e1de",
       fixedrange: false,
       titlefont: { size: isMobile ? 11 : 13 },
       tickfont: { size: isMobile ? 10 : 12 },
     },
     yaxis2: {
       title: "潮位 cm",
-      color: "#c2410c",
+      color: isMobile ? "#ffffff" : "#c2410c",
       overlaying: "y",
       side: "right",
       fixedrange: false,
@@ -284,7 +331,7 @@ function drawChart() {
             yanchor: "bottom",
             showarrow: false,
             align: "right",
-            font: { size: isMobile ? 11 : 12, color: "#5b6b68" },
+            font: { size: isMobile ? 11 : 12, color: isMobile ? "#f4ff38" : "#5b6b68" },
           },
         ]
       : [],

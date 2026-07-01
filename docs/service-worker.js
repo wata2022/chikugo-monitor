@@ -1,4 +1,4 @@
-const CACHE_NAME = "chikugo-monitor-v4";
+const CACHE_NAME = "chikugo-monitor-v5";
 const APP_SHELL = [
   "./",
   "./index.html",

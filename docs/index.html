@@ -14,6 +14,17 @@
   </head>
   <body>
     <main class="app-shell">
+      <section class="mobile-hero" aria-label="スマホ表示ヘッダー">
+        <div class="bi-badge">
+          <strong>BI</strong>
+          <span id="mobileMoonAge">--</span>
+        </div>
+        <div class="mobile-title">
+          <h1>筑後川昇開橋 <span aria-hidden="true">♥</span></h1>
+          <p id="mobileDateLabel">--</p>
+        </div>
+      </section>
+
       <header class="app-header">
         <div>
           <p class="eyebrow">Chikugo Ozeki / Wakatsu</p>
@@ -48,7 +59,14 @@
           <button class="range-button" type="button" data-days="3" role="tab" aria-selected="false">3日</button>
           <button class="range-button" type="button" data-days="7" role="tab" aria-selected="false">7日</button>
         </div>
-        <div id="chart" class="chart" role="img" aria-label="水位と潮位のグラフ"></div>
+        <div class="mobile-chart-frame">
+          <aside class="mobile-tide-panel" aria-label="現在潮位">
+            <span>現在潮位</span>
+            <strong id="mobileCurrentTide">--</strong>
+            <small id="mobileTideTrend">--</small>
+          </aside>
+          <div id="chart" class="chart" role="img" aria-label="水位と潮位のグラフ"></div>
+        </div>
         <p id="message" class="message" aria-live="polite"></p>
       </section>
     </main>
