@@ -25,6 +25,7 @@ body {
     var(--bg);
   color: var(--text);
   font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", Meiryo, system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
 }
 
 button {
@@ -35,15 +36,15 @@ button {
   width: min(1120px, 100%);
   min-height: 100vh;
   margin: 0 auto;
-  padding: max(18px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
+  padding: max(14px, env(safe-area-inset-top)) 12px max(18px, env(safe-area-inset-bottom));
 }
 
 .app-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  padding: 8px 0 18px;
+  gap: 10px;
+  padding: 6px 0 12px;
 }
 
 .eyebrow {
@@ -56,16 +57,16 @@ button {
 
 h1 {
   margin: 0;
-  font-size: clamp(1.35rem, 5.4vw, 2.25rem);
-  line-height: 1.24;
+  font-size: clamp(1.16rem, 5vw, 2.25rem);
+  line-height: 1.28;
   letter-spacing: 0;
 }
 
 .icon-button {
   display: grid;
   flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   place-items: center;
   border: 0;
   border-radius: 8px;
@@ -94,13 +95,13 @@ h1 {
 .status-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 12px;
 }
 
 .metric {
   min-width: 0;
-  padding: 14px;
+  padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
@@ -113,7 +114,7 @@ h1 {
 
 .metric-label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 700;
@@ -121,22 +122,23 @@ h1 {
 
 .metric strong {
   display: block;
-  min-height: 1.85rem;
+  min-height: 1.65rem;
   overflow-wrap: anywhere;
-  font-size: clamp(1.25rem, 5vw, 2rem);
+  font-size: clamp(1.18rem, 5vw, 2rem);
   line-height: 1.15;
 }
 
 .metric small {
   display: block;
   min-height: 1.1rem;
-  margin-top: 7px;
+  margin-top: 5px;
   color: var(--muted);
   font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .chart-panel {
-  padding: 12px;
+  padding: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -171,8 +173,8 @@ h1 {
 
 .chart {
   width: 100%;
-  height: min(68vh, 620px);
-  min-height: 430px;
+  height: min(64vh, 620px);
+  min-height: 390px;
 }
 
 .message {
@@ -203,12 +205,74 @@ h1 {
 
 @media (max-width: 420px) {
   .app-shell {
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-wide {
+    grid-column: auto;
+  }
+
+  .metric {
+    display: grid;
+    grid-template-columns: minmax(5.5em, auto) 1fr;
+    column-gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+  }
+
+  .metric-label {
+    margin: 0;
+  }
+
+  .metric strong {
+    min-height: 0;
+    text-align: right;
+  }
+
+  .metric small {
+    grid-column: 2;
+    margin-top: 3px;
+    text-align: right;
   }
 
   .chart {
-    height: 58vh;
-    min-height: 360px;
+    height: 60vh;
+    min-height: 390px;
+  }
+
+  .chart-panel {
+    padding: 8px;
+  }
+
+  .range-button {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 360px) {
+  h1 {
+    font-size: 1.05rem;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+  }
+
+  .metric {
+    grid-template-columns: 5em 1fr;
+    padding: 9px 10px;
+  }
+
+  .metric strong {
+    font-size: 1.08rem;
+  }
+
+  .chart {
+    min-height: 370px;
   }
 }

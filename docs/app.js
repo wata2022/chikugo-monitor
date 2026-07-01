@@ -181,6 +181,7 @@ function drawChart() {
   const x = rows.map((row) => row.datetime);
   const tideMetaRow = getLatestTideMetaRow(rows);
   const tideMetaText = formatTideMeta(tideMetaRow).replace("若津 / ", "");
+  const isMobile = window.matchMedia("(max-width: 520px)").matches;
   const config = {
     responsive: true,
     displaylogo: false,
@@ -194,8 +195,8 @@ function drawChart() {
       name: "下流水位",
       type: "scatter",
       mode: "lines+markers",
-      line: { color: "#1667b7", width: 3 },
-      marker: { size: 6 },
+      line: { color: "#1667b7", width: isMobile ? 2.4 : 3 },
+      marker: { size: isMobile ? 4 : 6 },
       hovertemplate: "%{x|%m/%d %H:%M}<br>下流 %{y:.2f} TPm<extra></extra>",
       connectgaps: true,
     },
@@ -205,8 +206,8 @@ function drawChart() {
       name: "上流水位",
       type: "scatter",
       mode: "lines+markers",
-      line: { color: "#15803d", width: 2 },
-      marker: { size: 5 },
+      line: { color: "#15803d", width: isMobile ? 1.8 : 2 },
+      marker: { size: isMobile ? 3.5 : 5 },
       hovertemplate: "%{x|%m/%d %H:%M}<br>上流 %{y:.2f} TPm<extra></extra>",
       connectgaps: true,
     },
@@ -221,8 +222,8 @@ function drawChart() {
       type: "scatter",
       mode: "lines+markers",
       yaxis: "y2",
-      line: { color: "#c2410c", width: 2 },
-      marker: { size: 5 },
+      line: { color: "#c2410c", width: isMobile ? 1.8 : 2 },
+      marker: { size: isMobile ? 3.5 : 5 },
       hovertemplate:
         "%{x|%m/%d %H:%M}<br>潮位 %{y:.0f} cm<br>潮名 %{customdata[0]}<br>月齢 %{customdata[1]}<extra></extra>",
       connectgaps: true,
@@ -231,7 +232,7 @@ function drawChart() {
 
   const layout = {
     autosize: true,
-    margin: { t: 18, r: 54, b: 50, l: 52 },
+    margin: isMobile ? { t: 42, r: 42, b: 44, l: 42 } : { t: 18, r: 54, b: 50, l: 52 },
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
     font: {
@@ -241,13 +242,15 @@ function drawChart() {
     legend: {
       orientation: "h",
       x: 0,
-      y: 1.12,
-      font: { size: 12 },
+      y: isMobile ? 1.22 : 1.12,
+      font: { size: isMobile ? 11 : 12 },
     },
     xaxis: {
-      tickformat: "%m/%d\n%H:%M",
+      tickformat: isMobile ? "%m/%d" : "%m/%d\n%H:%M",
       gridcolor: "#e5ecea",
       rangeslider: { visible: false },
+      tickfont: { size: isMobile ? 10 : 12 },
+      nticks: isMobile ? 4 : undefined,
     },
     yaxis: {
       title: "水位 TPm",
@@ -255,6 +258,8 @@ function drawChart() {
       gridcolor: "#e5ecea",
       zerolinecolor: "#d6e1de",
       fixedrange: false,
+      titlefont: { size: isMobile ? 11 : 13 },
+      tickfont: { size: isMobile ? 10 : 12 },
     },
     yaxis2: {
       title: "潮位 cm",
@@ -262,6 +267,8 @@ function drawChart() {
       overlaying: "y",
       side: "right",
       fixedrange: false,
+      titlefont: { size: isMobile ? 11 : 13 },
+      tickfont: { size: isMobile ? 10 : 12 },
     },
     annotations: tideMetaRow
       ? [
@@ -272,12 +279,12 @@ function drawChart() {
             xref: "paper",
             yref: "paper",
             x: 1,
-            y: 1.08,
+            y: isMobile ? 1.12 : 1.08,
             xanchor: "right",
             yanchor: "bottom",
             showarrow: false,
             align: "right",
-            font: { size: 12, color: "#5b6b68" },
+            font: { size: isMobile ? 11 : 12, color: "#5b6b68" },
           },
         ]
       : [],
