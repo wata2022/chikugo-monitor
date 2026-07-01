@@ -1,5 +1,5 @@
 const DATA_URL = "./merged.csv";
-const APP_VERSION = "v8";
+const APP_VERSION = "v9";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -238,7 +238,8 @@ function drawChart() {
     responsive: true,
     displaylogo: false,
     displayModeBar: false,
-    scrollZoom: true,
+    scrollZoom: false,
+    doubleClick: false,
     modeBarButtonsToRemove: ["lasso2d", "select2d"],
   };
   const traces = [
@@ -314,6 +315,7 @@ function drawChart() {
       tickformat: isMobile ? "%m/%d" : "%m/%d\n%H:%M",
       gridcolor: "rgba(255,255,255,0.28)",
       rangeslider: { visible: false },
+      fixedrange: true,
       tickfont: { size: isMobile ? 10 : 13 },
       nticks: isMobile ? 4 : undefined,
     },
@@ -322,7 +324,7 @@ function drawChart() {
       color: colors.downstream,
       gridcolor: "rgba(255,255,255,0.26)",
       zerolinecolor: "rgba(255,255,255,0.55)",
-      fixedrange: false,
+      fixedrange: true,
       titlefont: { size: isMobile ? 11 : 14 },
       tickfont: { size: isMobile ? 10 : 13 },
     },
@@ -331,7 +333,7 @@ function drawChart() {
       color: colors.tide,
       overlaying: "y",
       side: "right",
-      fixedrange: false,
+      fixedrange: true,
       titlefont: { size: isMobile ? 11 : 14 },
       tickfont: { size: isMobile ? 10 : 13 },
     },
@@ -354,7 +356,7 @@ function drawChart() {
         ]
       : [],
     hovermode: "x unified",
-    dragmode: "pan",
+    dragmode: false,
   };
 
   Plotly.react(elements.chart, traces, layout, config);
