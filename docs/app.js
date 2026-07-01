@@ -1,5 +1,5 @@
 const DATA_URL = "./merged.csv";
-const APP_VERSION = "v10";
+const APP_VERSION = "v11";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -20,11 +20,15 @@ const elements = {
   rowCount: document.getElementById("rowCount"),
   mobileCurrentTide: document.getElementById("mobileCurrentTide"),
   mobileTideTrend: document.getElementById("mobileTideTrend"),
+  mobileMoonIcon: document.getElementById("mobileMoonIcon"),
   mobileMoonAge: document.getElementById("mobileMoonAge"),
   mobileTideName: document.getElementById("mobileTideName"),
   mobileDateLabel: document.getElementById("mobileDateLabel"),
   message: document.getElementById("message"),
-  refreshButton: document.getElementById("refreshButton"),
+  refreshButtons: [
+    document.getElementById("refreshButton"),
+    document.getElementById("mobileRefreshButton"),
+  ].filter(Boolean),
   rangeButtons: Array.from(document.querySelectorAll(".range-button")),
 };
 
@@ -137,6 +141,16 @@ function formatTideMeta(row) {
   return parts.length ? `若津 / ${parts.join(" / ")}` : "若津";
 }
 
+function getMoonPhaseIcon(moonAge) {
+  if (moonAge === null || moonAge === undefined) {
+    return "🌕";
+  }
+
+  const normalizedAge = ((moonAge % 29.530588853) + 29.530588853) % 29.530588853;
+  const phaseIndex = Math.round((normalizedAge / 29.530588853) * 8) % 8;
+  return ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"][phaseIndex];
+}
+
 function getLatestRow(rows) {
   for (let index = rows.length - 1; index >= 0; index -= 1) {
     const row = rows[index];
@@ -187,6 +201,7 @@ function updateMetrics() {
     elements.rowCount.textContent = "0件";
     elements.mobileCurrentTide.textContent = "--";
     elements.mobileTideTrend.textContent = "--";
+    elements.mobileMoonIcon.textContent = "🌕";
     elements.mobileMoonAge.textContent = "月齢 --";
     elements.mobileTideName.textContent = "--";
     elements.mobileDateLabel.textContent = "--";
@@ -210,6 +225,7 @@ function updateMetrics() {
   elements.mobileCurrentTide.textContent =
     latest.tide === null ? "--" : `${latest.tide.toFixed(0)}cm`;
   elements.mobileTideTrend.textContent = tideTrend;
+  elements.mobileMoonIcon.textContent = getMoonPhaseIcon(latest.moonAge);
   elements.mobileMoonAge.textContent =
     latest.moonAge === null ? "月齢 --" : `月齢 ${latest.moonAge.toFixed(1)}`;
   elements.mobileTideName.textContent = latest.tideName || "--";
@@ -220,6 +236,10 @@ function drawChart() {
   const rows = getFilteredRows(state.rows, state.days);
   const x = rows.map((row) => row.datetime);
   const isMobile = window.matchMedia("(max-width: 520px)").matches;
+  const isMultiDay = state.days > 1;
+  const markerSize = isMultiDay ? 0 : isMobile ? 7.5 : 8;
+  const tideMarkerSize = isMultiDay ? 0 : isMobile ? 6.5 : 7;
+  const traceMode = isMultiDay ? "lines" : "lines+markers";
   const colors = {
     downstream: "#f4ff27",
     upstream: "#76f7ff",
@@ -239,10 +259,10 @@ function drawChart() {
       y: rows.map((row) => row.downstream),
       name: "下流水位",
       type: "scatter",
-      mode: "lines+markers",
-      line: { color: colors.downstream, width: isMobile ? 5.5 : 5.2 },
+      mode: traceMode,
+      line: { color: colors.downstream, width: isMultiDay ? 4 : isMobile ? 5.5 : 5.2 },
       marker: {
-        size: isMobile ? 7.5 : 8,
+        size: markerSize,
         color: colors.downstream,
         line: { color: "#ffffff", width: isMobile ? 1.4 : 1.6 },
       },
@@ -254,10 +274,10 @@ function drawChart() {
       y: rows.map((row) => row.upstream),
       name: "上流水位",
       type: "scatter",
-      mode: "lines+markers",
-      line: { color: colors.upstream, width: isMobile ? 4.4 : 4.4 },
+      mode: traceMode,
+      line: { color: colors.upstream, width: isMultiDay ? 3.2 : 4.4 },
       marker: {
-        size: isMobile ? 6.5 : 7,
+        size: tideMarkerSize,
         color: colors.upstream,
         line: { color: "#ffffff", width: isMobile ? 1.2 : 1.4 },
       },
@@ -269,11 +289,11 @@ function drawChart() {
       y: rows.map((row) => row.tide),
       name: "潮位",
       type: "scatter",
-      mode: "lines+markers",
+      mode: traceMode,
       yaxis: "y2",
-      line: { color: colors.tide, width: isMobile ? 4.6 : 4.6 },
+      line: { color: colors.tide, width: isMultiDay ? 3.4 : 4.6 },
       marker: {
-        size: isMobile ? 6.5 : 7,
+        size: tideMarkerSize,
         color: colors.tide,
         line: { color: "#ffffff", width: isMobile ? 1.2 : 1.4 },
       },
@@ -298,12 +318,12 @@ function drawChart() {
       font: { size: isMobile ? 11 : 13 },
     },
     xaxis: {
-      tickformat: isMobile ? "%m/%d" : "%m/%d\n%H:%M",
+      tickformat: state.days === 1 ? (isMobile ? "%H:%M" : "%m/%d\n%H:%M") : "%m/%d",
       gridcolor: "rgba(255,255,255,0.28)",
       rangeslider: { visible: false },
       fixedrange: true,
       tickfont: { size: isMobile ? 10 : 13 },
-      nticks: isMobile ? 4 : undefined,
+      nticks: state.days === 1 ? (isMobile ? 5 : 8) : state.days === 3 ? 6 : 8,
     },
     yaxis: {
       title: "水位 TPm",
@@ -344,7 +364,9 @@ async function updateServiceWorker() {
 }
 
 async function loadData({ quiet = false } = {}) {
-  elements.refreshButton.disabled = true;
+  elements.refreshButtons.forEach((button) => {
+    button.disabled = true;
+  });
   if (!quiet) {
     elements.message.textContent = "更新中...";
   }
@@ -362,7 +384,9 @@ async function loadData({ quiet = false } = {}) {
   } catch (error) {
     elements.message.textContent = `データを取得できませんでした: ${error.message}`;
   } finally {
-    elements.refreshButton.disabled = false;
+    elements.refreshButtons.forEach((button) => {
+      button.disabled = false;
+    });
   }
 }
 
@@ -376,7 +400,9 @@ function setRange(days) {
   drawChart();
 }
 
-elements.refreshButton.addEventListener("click", () => loadData());
+elements.refreshButtons.forEach((button) => {
+  button.addEventListener("click", () => loadData());
+});
 elements.rangeButtons.forEach((button) => {
   button.addEventListener("click", () => setRange(Number(button.dataset.days)));
 });
