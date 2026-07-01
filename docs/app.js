@@ -1,5 +1,5 @@
 const DATA_URL = "./merged.csv";
-const APP_VERSION = "v11";
+const APP_VERSION = "v12";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -214,7 +214,9 @@ function updateMetrics() {
   const tideTrend =
     tideDiff === null
       ? "--"
-      : `${tideDiff >= 0 ? "上げ" : "下げ"} ${Math.abs(tideDiff).toFixed(0)}cm`;
+      : tideDiff === 0
+        ? "変化なし 0cm"
+        : `${tideDiff > 0 ? "上げ幅" : "下げ幅"} ${Math.abs(tideDiff).toFixed(0)}cm`;
 
   elements.currentWaterLevel.textContent = formatNumber(latest.downstream, "TPm");
   elements.currentWaterDetail.textContent = `上流 ${formatNumber(latest.upstream, "TPm")}`;
