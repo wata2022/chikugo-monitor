@@ -1,3 +1,5 @@
 *.png
 !icons/
 !icons/*.png
+!docs/icons/
+!docs/icons/*.png
