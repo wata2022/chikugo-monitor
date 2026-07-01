@@ -1,4 +1,5 @@
 const DATA_URL = "./merged.csv";
+const APP_VERSION = "v8";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -247,11 +248,11 @@ function drawChart() {
       name: "下流水位",
       type: "scatter",
       mode: "lines+markers",
-      line: { color: colors.downstream, width: isMobile ? 4 : 4.5 },
+      line: { color: colors.downstream, width: isMobile ? 5.5 : 5.2 },
       marker: {
-        size: isMobile ? 6 : 7,
+        size: isMobile ? 7.5 : 8,
         color: colors.downstream,
-        line: { color: "#062f4e", width: isMobile ? 1.5 : 1.8 },
+        line: { color: "#ffffff", width: isMobile ? 1.4 : 1.6 },
       },
       hovertemplate: "%{x|%m/%d %H:%M}<br>下流 %{y:.2f} TPm<extra></extra>",
       connectgaps: true,
@@ -262,11 +263,11 @@ function drawChart() {
       name: "上流水位",
       type: "scatter",
       mode: "lines+markers",
-      line: { color: colors.upstream, width: isMobile ? 3 : 3.4 },
+      line: { color: colors.upstream, width: isMobile ? 4.4 : 4.4 },
       marker: {
-        size: isMobile ? 5 : 6,
+        size: isMobile ? 6.5 : 7,
         color: colors.upstream,
-        line: { color: "#062f4e", width: isMobile ? 1.2 : 1.5 },
+        line: { color: "#ffffff", width: isMobile ? 1.2 : 1.4 },
       },
       hovertemplate: "%{x|%m/%d %H:%M}<br>上流 %{y:.2f} TPm<extra></extra>",
       connectgaps: true,
@@ -282,11 +283,11 @@ function drawChart() {
       type: "scatter",
       mode: "lines+markers",
       yaxis: "y2",
-      line: { color: colors.tide, width: isMobile ? 3.2 : 3.6 },
+      line: { color: colors.tide, width: isMobile ? 4.6 : 4.6 },
       marker: {
-        size: isMobile ? 5 : 6,
+        size: isMobile ? 6.5 : 7,
         color: colors.tide,
-        line: { color: "#062f4e", width: isMobile ? 1.2 : 1.5 },
+        line: { color: "#ffffff", width: isMobile ? 1.2 : 1.4 },
       },
       hovertemplate:
         "%{x|%m/%d %H:%M}<br>潮位 %{y:.0f} cm<br>潮名 %{customdata[0]}<br>月齢 %{customdata[1]}<extra></extra>",
@@ -298,7 +299,7 @@ function drawChart() {
     autosize: true,
     margin: isMobile ? { t: 44, r: 40, b: 40, l: 42 } : { t: 54, r: 64, b: 54, l: 58 },
     paper_bgcolor: "#083d63",
-    plot_bgcolor: "#0c5a87",
+    plot_bgcolor: "#0a6ea8",
     font: {
       family: '"Yu Gothic", Meiryo, sans-serif',
       color: "#f5fbff",
@@ -364,6 +365,17 @@ function drawChart() {
     : "表示できるデータがありません。";
 }
 
+async function updateServiceWorker() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  const registration = await navigator.serviceWorker.register(
+    `./service-worker.js?${APP_VERSION}`
+  );
+  await registration.update();
+}
+
 async function loadData({ quiet = false } = {}) {
   elements.refreshButton.disabled = true;
   if (!quiet) {
@@ -408,7 +420,7 @@ window.addEventListener("resize", () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js");
+    updateServiceWorker().catch(() => {});
   });
 }
 

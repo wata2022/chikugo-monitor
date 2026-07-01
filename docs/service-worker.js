@@ -1,10 +1,10 @@
-const CACHE_NAME = "chikugo-monitor-v7";
+const CACHE_NAME = "chikugo-monitor-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./style.css",
-  "./app.js",
-  "./manifest.json",
+  "./style.css?v=8",
+  "./app.js?v=8",
+  "./manifest.json?v=8",
   "./merged.csv",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -38,6 +38,18 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.endsWith("/merged.csv")) {
     const cacheKey = new Request(new URL("./merged.csv", self.registration.scope));
     event.respondWith(networkFirst(request, cacheKey));
+    return;
+  }
+
+  if (
+    request.mode === "navigate" ||
+    url.pathname.endsWith("/") ||
+    url.pathname.endsWith(".html") ||
+    url.pathname.endsWith(".css") ||
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".json")
+  ) {
+    event.respondWith(networkFirst(request));
     return;
   }
 
