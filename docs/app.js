@@ -1,5 +1,5 @@
 const DATA_URL = "./merged.csv";
-const APP_VERSION = "v18";
+const APP_VERSION = "v19";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -407,7 +407,9 @@ async function loadData({ quiet = false } = {}) {
   }
 
   try {
-    const response = await fetch(`${DATA_URL}?v=${Date.now()}`);
+    const response = await fetch(`${DATA_URL}?v=${Date.now()}`, {
+      cache: "no-store",
+    });
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }

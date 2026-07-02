@@ -319,7 +319,9 @@ async function loadData({ quiet = false } = {}) {
   }
 
   try {
-    const response = await fetch(`${DATA_URL}?v=${Date.now()}`);
+    const response = await fetch(`${DATA_URL}?v=${Date.now()}`, {
+      cache: "no-store",
+    });
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
