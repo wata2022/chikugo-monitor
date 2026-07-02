@@ -1,4 +1,6 @@
 *.png
+__pycache__/
+*.pyc
 !icons/
 !icons/*.png
 !docs/icons/
