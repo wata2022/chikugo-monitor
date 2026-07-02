@@ -59,6 +59,26 @@
         <div id="chart" class="chart" role="img" aria-label="水位と潮位のグラフ"></div>
         <p id="message" class="message" aria-live="polite"></p>
       </section>
+
+      <section class="history-panel" aria-label="水位履歴">
+        <h2>水位履歴</h2>
+        <div class="history-table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th scope="col">時刻</th>
+                <th scope="col">下流</th>
+                <th scope="col">上流</th>
+              </tr>
+            </thead>
+            <tbody id="waterHistoryBody">
+              <tr>
+                <td colspan="3">--</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
   </body>
 </html>

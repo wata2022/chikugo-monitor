@@ -17,6 +17,7 @@ const elements = {
   currentTideDetail: document.getElementById("currentTideDetail"),
   lastUpdated: document.getElementById("lastUpdated"),
   rowCount: document.getElementById("rowCount"),
+  waterHistoryBody: document.getElementById("waterHistoryBody"),
   message: document.getElementById("message"),
   refreshButton: document.getElementById("refreshButton"),
   rangeButtons: Array.from(document.querySelectorAll(".range-button")),
@@ -176,6 +177,30 @@ function updateMetrics() {
   elements.rowCount.textContent = `${state.rows.length}件`;
 }
 
+function renderWaterHistory(rows) {
+  const waterRows = rows
+    .filter((row) => row.downstream !== null || row.upstream !== null)
+    .slice()
+    .reverse();
+
+  if (!waterRows.length) {
+    elements.waterHistoryBody.innerHTML = '<tr><td colspan="3">水位データがありません</td></tr>';
+    return;
+  }
+
+  elements.waterHistoryBody.innerHTML = waterRows
+    .map(
+      (row) => `
+        <tr>
+          <td>${formatDateTime(row.datetime)}</td>
+          <td>${formatNumber(row.downstream, "TPm")}</td>
+          <td>${formatNumber(row.upstream, "TPm")}</td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
 function drawChart() {
   const rows = getFilteredRows(state.rows, state.days);
   const x = rows.map((row) => row.datetime);
@@ -286,6 +311,7 @@ function drawChart() {
   };
 
   Plotly.react(elements.chart, traces, layout, config);
+  renderWaterHistory(rows);
   elements.message.textContent = rows.length
     ? tideMetaText
       ? `表示期間の潮名・月齢: ${tideMetaText}`
