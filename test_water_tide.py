@@ -59,6 +59,54 @@ class TideMergeTest(unittest.TestCase):
         self.assertEqual(merged.loc[0, "tide_cm"], 135)
         self.assertEqual(merged.loc[0, "time_diff_minutes"], -20)
 
+    def test_merge_hourly_keeps_full_water_history(self) -> None:
+        water_level = pd.DataFrame(
+            {
+                "datetime": [
+                    pd.Timestamp("2026-07-01 09:00"),
+                    pd.Timestamp("2026-07-01 10:00"),
+                ],
+                "downstream_water_level_tpm": [2.4, 2.7],
+                "upstream_water_level_tpm": [3.1, 3.2],
+            }
+        )
+        tide = pd.DataFrame(
+            {
+                "datetime": [pd.Timestamp("2026-07-01 09:00")],
+                "tide_cm": [450],
+            }
+        )
+
+        merged = stage2_water_tide.merge_hourly(water_level, tide, "1h")
+
+        self.assertEqual(merged.iloc[-1]["datetime"], pd.Timestamp("2026-07-01 10:00"))
+        self.assertEqual(merged.iloc[-1]["downstream_water_level_tpm"], 2.7)
+        self.assertTrue(pd.isna(merged.iloc[-1]["tide_cm"]))
+
+    def test_merge_hourly_keeps_tide_when_water_is_empty(self) -> None:
+        water_level = pd.DataFrame(
+            columns=[
+                "datetime",
+                "downstream_water_level_tpm",
+                "upstream_water_level_tpm",
+            ]
+        )
+        tide = pd.DataFrame(
+            {
+                "datetime": [
+                    pd.Timestamp("2026-07-01 09:00"),
+                    pd.Timestamp("2026-07-01 10:00"),
+                ],
+                "tide_cm": [450, 460],
+            }
+        )
+
+        merged = stage2_water_tide.merge_hourly(water_level, tide, "1h")
+
+        self.assertEqual(len(merged), 2)
+        self.assertEqual(merged.iloc[-1]["datetime"], pd.Timestamp("2026-07-01 10:00"))
+        self.assertEqual(merged.iloc[-1]["tide_cm"], 460)
+
     def test_parse_tide736_response(self) -> None:
         response_json = {
             "status": 1,

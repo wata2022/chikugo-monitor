@@ -61,6 +61,13 @@ JAPANESE_FONT_CANDIDATES = (
 )
 
 
+def current_jst_timestamp() -> pd.Timestamp:
+    """Returns the current timestamp in Japan time without timezone metadata."""
+    return pd.Timestamp(
+        dt.datetime.now(dt.timezone(dt.timedelta(hours=9))).replace(tzinfo=None)
+    )
+
+
 def canonicalize_column_name(column: object) -> str:
     """Normalizes a column name for flexible CSV matching."""
     return str(column).strip().replace(" ", "").replace("　", "").lower()
@@ -265,10 +272,19 @@ def fetch_tide736_data(
 
 def load_tide_data(args: argparse.Namespace, water_level: pd.DataFrame) -> pd.DataFrame:
     """Loads tide data from tide736 first, falling back to tide.csv when needed."""
+    if (
+        water_level.empty
+        or "datetime" not in water_level
+        or water_level["datetime"].dropna().empty
+    ):
+        tide_start = current_jst_timestamp()
+    else:
+        tide_start = pd.Timestamp(water_level["datetime"].min())
+
     if not args.no_auto_tide:
         try:
             tide = fetch_tide736_data(
-                pd.Timestamp(water_level["datetime"].min()),
+                tide_start,
                 args.tide_prefecture_code,
                 args.tide_harbor_code,
             )
@@ -283,7 +299,7 @@ def load_tide_data(args: argparse.Namespace, water_level: pd.DataFrame) -> pd.Da
             print(f"Automatic tide fetch failed: {error}", file=sys.stderr)
             print(f"Falling back to CSV: {args.tide_csv}", file=sys.stderr)
 
-    default_year = int(water_level["datetime"].dt.year.mode().iloc[0])
+    default_year = int(tide_start.year)
     return read_tide_csv(args.tide_csv, default_year)
 
 
@@ -362,15 +378,23 @@ def merge_hourly(
     tide: pd.DataFrame,
     frequency: str,
 ) -> pd.DataFrame:
-    """Aligns upstream/downstream water levels and tide data on a fixed grid."""
-    start = max(water_level["datetime"].min(), tide["datetime"].min())
-    end = min(water_level["datetime"].max(), tide["datetime"].max())
+    """Aligns water levels and available tide data on the water-history grid."""
+    water_has_rows = not water_level.empty and water_level["datetime"].notna().any()
+    if water_has_rows:
+        start = water_level["datetime"].min()
+        end = water_level["datetime"].max()
+    else:
+        start = tide["datetime"].min()
+        end = min(tide["datetime"].max(), current_jst_timestamp().floor(frequency))
     if pd.isna(start) or pd.isna(end) or start > end:
-        raise ValueError("Water and tide data time ranges do not overlap.")
+        raise ValueError("Water and tide data time ranges are empty.")
 
     merged = pd.DataFrame({"datetime": pd.date_range(start=start, end=end, freq=frequency)})
     for water_column in WATER_COLUMNS:
         if water_column not in water_level.columns:
+            continue
+        if water_level[["datetime", water_column]].dropna().empty:
+            merged[water_column] = pd.NA
             continue
         water_hourly = resample_numeric(
             water_level,
@@ -434,8 +458,6 @@ def write_overlay_graph(
     title_suffix: str = "",
 ) -> None:
     """Writes a two-axis line graph."""
-    if not any(column in merged and merged[column].notna().any() for column in WATER_COLUMNS):
-        raise ValueError("No water-level rows are available for plotting.")
     if "tide_cm" not in merged or merged["tide_cm"].notna().sum() == 0:
         raise ValueError("No tide rows are available for plotting.")
 
@@ -444,7 +466,10 @@ def write_overlay_graph(
     right_axis = left_axis.twinx()
 
     lines = []
-    if "downstream_water_level_tpm" in merged:
+    if (
+        "downstream_water_level_tpm" in merged
+        and merged["downstream_water_level_tpm"].notna().any()
+    ):
         lines += left_axis.plot(
             merged["datetime"],
             merged["downstream_water_level_tpm"],
@@ -454,7 +479,10 @@ def write_overlay_graph(
             linewidth=2.0,
             label="Downstream water level (TPm)",
         )
-    if "upstream_water_level_tpm" in merged:
+    if (
+        "upstream_water_level_tpm" in merged
+        and merged["upstream_water_level_tpm"].notna().any()
+    ):
         lines += left_axis.plot(
             merged["datetime"],
             merged["upstream_water_level_tpm"],
@@ -498,7 +526,8 @@ def write_overlay_graph(
     left_axis.grid(True, color="#d9d9d9", linewidth=0.8)
     left_axis.xaxis.set_major_formatter(mdates.DateFormatter("%m/%d %H:%M"))
     left_axis.xaxis.set_major_locator(mdates.HourLocator(interval=6))
-    left_axis.legend(lines, [line.get_label() for line in lines], loc="upper left")
+    if lines:
+        left_axis.legend(lines, [line.get_label() for line in lines], loc="upper left")
     fig.autofmt_xdate(rotation=35, ha="right")
     fig.savefig(output_path, dpi=160)
     plt.close(fig)
@@ -515,11 +544,6 @@ def write_daily_overlay_graphs(merged: pd.DataFrame, output_dir: Path) -> list[P
         if daily_data.empty:
             continue
         if "tide_cm" not in daily_data or daily_data["tide_cm"].isna().all():
-            continue
-        if not any(
-            column in daily_data and daily_data[column].notna().any()
-            for column in WATER_COLUMNS
-        ):
             continue
 
         output_path = output_dir / f"graph_{day:%Y%m%d}.png"
@@ -614,19 +638,34 @@ def main() -> int:
     """Runs stage 2."""
     args = parse_args()
     try:
-        water_level = stage1_water_level.fetch_all_water_levels()
+        try:
+            water_level = stage1_water_level.fetch_all_water_levels()
+        except (OSError, requests.RequestException, ValueError) as error:
+            print(
+                f"Water-level fetch failed; continuing with tide-only data: {error}",
+                file=sys.stderr,
+            )
+            water_level = pd.DataFrame(
+                columns=[
+                    "datetime",
+                    "downstream_water_level_tpm",
+                    "upstream_water_level_tpm",
+                ]
+            )
         tide = load_tide_data(args, water_level)
         merged = merge_hourly(water_level, tide, args.frequency)
         merged.to_csv(args.merged_csv, index=False, encoding="utf-8-sig")
         write_overlay_graph(merged, args.graph)
         daily_graphs = write_daily_overlay_graphs(merged, args.daily_graph_dir)
-        best_lag = calculate_best_lag(
-            water_level,
-            tide,
-            args.merge_tolerance_minutes,
-            args.max_lag_minutes,
-            args.lag_step_minutes,
-        )
+        best_lag = None
+        if not water_level.empty:
+            best_lag = calculate_best_lag(
+                water_level,
+                tide,
+                args.merge_tolerance_minutes,
+                args.max_lag_minutes,
+                args.lag_step_minutes,
+            )
     except (
         OSError,
         pd.errors.ParserError,
