@@ -321,72 +321,6 @@ button {
   font-weight: 700;
 }
 
-.history-panel {
-  padding: 14px 14px max(18px, env(safe-area-inset-bottom));
-  background: #041f34;
-  border-top: 2px solid rgba(118, 247, 255, 0.7);
-}
-
-.history-panel h2 {
-  margin: 0 0 10px;
-  color: #f7fbff;
-  font-size: 1.05rem;
-  line-height: 1.25;
-}
-
-.history-grid {
-  display: grid;
-  gap: 12px;
-}
-
-.history-card h3 {
-  margin: 0 0 8px;
-  color: #76f7ff;
-  font-size: 0.92rem;
-  line-height: 1.25;
-}
-
-.history-table-wrap {
-  max-height: 330px;
-  overflow: auto;
-  border: 1px solid rgba(118, 247, 255, 0.55);
-  border-radius: 6px;
-  background: #062b45;
-}
-
-.history-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.history-table th,
-.history-table td {
-  padding: 9px 10px;
-  border-bottom: 1px solid rgba(118, 247, 255, 0.22);
-  color: #f7fbff;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.history-table th:first-child,
-.history-table td:first-child {
-  text-align: left;
-}
-
-.history-table th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: #073d61;
-  color: #76f7ff;
-  font-weight: 900;
-}
-
-.history-table tr:last-child td {
-  border-bottom: 0;
-}
-
 @media (min-width: 760px) {
   .app-shell {
     border-right: 1px solid rgba(255, 255, 255, 0.14);
@@ -394,9 +328,6 @@ button {
     box-shadow: 0 0 46px rgba(0, 0, 0, 0.45);
   }
 
-  .history-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 420px) {
@@ -513,18 +444,6 @@ button {
     font-size: 0.82rem;
   }
 
-  .history-panel {
-    padding: 12px 10px max(16px, env(safe-area-inset-bottom));
-  }
-
-  .history-table {
-    font-size: 0.78rem;
-  }
-
-  .history-table th,
-  .history-table td {
-    padding: 8px 6px;
-  }
 }
 
 @media (max-width: 360px) {

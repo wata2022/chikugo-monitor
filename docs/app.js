@@ -1,5 +1,5 @@
 const DATA_URL = "./merged.csv";
-const APP_VERSION = "v16";
+const APP_VERSION = "v17";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -18,8 +18,6 @@ const elements = {
   currentTideDetail: document.getElementById("currentTideDetail"),
   lastUpdated: document.getElementById("lastUpdated"),
   rowCount: document.getElementById("rowCount"),
-  downstreamHistoryBody: document.getElementById("downstreamHistoryBody"),
-  upstreamHistoryBody: document.getElementById("upstreamHistoryBody"),
   mobileCurrentTide: document.getElementById("mobileCurrentTide"),
   mobileTideTrend: document.getElementById("mobileTideTrend"),
   mobileMoonIcon: document.getElementById("mobileMoonIcon"),
@@ -242,34 +240,6 @@ function updateMetrics() {
   elements.mobileUpstreamLevel.textContent = formatNumber(latest.upstream, "TPm");
 }
 
-function renderWaterHistoryTable(body, rows, key) {
-  const waterRows = rows
-    .filter((row) => row[key] !== null)
-    .slice()
-    .reverse();
-
-  if (!waterRows.length) {
-    body.innerHTML = '<tr><td colspan="2">水位データがありません</td></tr>';
-    return;
-  }
-
-  body.innerHTML = waterRows
-    .map(
-      (row) => `
-        <tr>
-          <td>${formatDateTime(row.datetime)}</td>
-          <td>${formatNumber(row[key], "TPm")}</td>
-        </tr>
-      `
-    )
-    .join("");
-}
-
-function renderWaterHistory(rows) {
-  renderWaterHistoryTable(elements.downstreamHistoryBody, rows, "downstream");
-  renderWaterHistoryTable(elements.upstreamHistoryBody, rows, "upstream");
-}
-
 function drawChart() {
   const rows = getFilteredRows(state.rows, state.days);
   const x = rows.map((row) => row.datetime);
@@ -387,7 +357,6 @@ function drawChart() {
   };
 
   Plotly.react(elements.chart, traces, layout, config);
-  renderWaterHistory(rows);
   elements.message.textContent = rows.length ? "" : "表示できるデータがありません。";
 }
 

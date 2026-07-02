@@ -1,10 +1,10 @@
-const CACHE_NAME = "chikugo-monitor-v16";
+const CACHE_NAME = "chikugo-monitor-v17";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./style.css?v=16",
-  "./app.js?v=16",
-  "./manifest.json?v=16",
+  "./style.css?v=17",
+  "./app.js?v=17",
+  "./manifest.json?v=17",
   "./merged.csv",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
