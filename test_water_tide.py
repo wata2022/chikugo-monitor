@@ -20,6 +20,22 @@ class WaterLevelTest(unittest.TestCase):
         observed_at = stage1_water_level.normalize_datetime(2026, 6, 30, 24, 0)
         self.assertEqual(observed_at, dt.datetime(2026, 7, 1, 0, 0))
 
+    def test_parse_water_level_keeps_source_update_timestamp(self) -> None:
+        page_text = """
+        <html><body>
+        上流水位履歴<br>
+        <font>26/07/02 21:10</font><br>
+        <font>07/02 21:00</font><font>3.17</font><br>
+        </body></html>
+        """
+
+        water_level = stage1_water_level.parse_water_level(page_text)
+
+        self.assertEqual(
+            water_level.loc[0, "source_updated_at"],
+            dt.datetime(2026, 7, 2, 21, 10),
+        )
+
 
 class TideMergeTest(unittest.TestCase):
     """Tests for stage 2 tide parsing and merging."""
@@ -68,6 +84,8 @@ class TideMergeTest(unittest.TestCase):
                 ],
                 "downstream_water_level_tpm": [2.4, 2.7],
                 "upstream_water_level_tpm": [3.1, 3.2],
+                "downstream_updated_at": [pd.Timestamp("2026-07-01 10:10")] * 2,
+                "upstream_updated_at": [pd.Timestamp("2026-07-01 10:20")] * 2,
             }
         )
         tide = pd.DataFrame(
@@ -82,6 +100,10 @@ class TideMergeTest(unittest.TestCase):
         self.assertEqual(merged.iloc[-1]["datetime"], pd.Timestamp("2026-07-01 10:00"))
         self.assertEqual(merged.iloc[-1]["downstream_water_level_tpm"], 2.7)
         self.assertTrue(pd.isna(merged.iloc[-1]["tide_cm"]))
+        self.assertEqual(
+            merged.iloc[-1]["downstream_updated_at"],
+            pd.Timestamp("2026-07-01 10:10"),
+        )
 
     def test_default_frequency_is_hourly(self) -> None:
         self.assertEqual(stage2_water_tide.DEFAULT_FREQUENCY, "1h")

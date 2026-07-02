@@ -52,6 +52,7 @@ TIDE_COLUMN_CANDIDATES = (
     "予測潮位",
 )
 WATER_COLUMNS = ("downstream_water_level_tpm", "upstream_water_level_tpm")
+WATER_UPDATED_AT_COLUMNS = ("downstream_updated_at", "upstream_updated_at")
 JAPANESE_FONT_CANDIDATES = (
     "Yu Gothic",
     "Meiryo",
@@ -406,6 +407,11 @@ def merge_hourly(
         )
         merged = pd.merge(merged, water_hourly, on="datetime", how="left")
 
+    for updated_at_column in WATER_UPDATED_AT_COLUMNS:
+        if updated_at_column in water_level.columns:
+            values = water_level[updated_at_column].dropna()
+            merged[updated_at_column] = values.iloc[-1] if not values.empty else pd.NA
+
     tide_hourly = resample_numeric(
         tide,
         "tide_cm",
@@ -640,6 +646,11 @@ def main() -> int:
     try:
         try:
             water_level = stage1_water_level.fetch_all_water_levels()
+            water_level.to_csv(
+                stage1_water_level.WATER_LEVEL_CSV_PATH,
+                index=False,
+                encoding="utf-8-sig",
+            )
         except (OSError, requests.RequestException, ValueError) as error:
             print(
                 f"Water-level fetch failed; continuing with tide-only data: {error}",
@@ -650,6 +661,8 @@ def main() -> int:
                     "datetime",
                     "downstream_water_level_tpm",
                     "upstream_water_level_tpm",
+                    "downstream_updated_at",
+                    "upstream_updated_at",
                 ]
             )
         tide = load_tide_data(args, water_level)

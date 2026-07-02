@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0f766e">
     <title>筑後大堰 若津 水位・潮位モニター</title>
-    <link rel="manifest" href="./manifest.json?v=17">
+    <link rel="manifest" href="./manifest.json?v=18">
     <link rel="icon" href="./icons/icon-192.png">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
-    <link rel="stylesheet" href="./style.css?v=17">
+    <link rel="stylesheet" href="./style.css?v=18">
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
-    <script src="./app.js?v=17" defer></script>
+    <script src="./app.js?v=18" defer></script>
   </head>
   <body>
     <main class="app-shell">
@@ -45,11 +45,17 @@
           <div class="water-readings">
             <div class="water-reading">
               <span>下流</span>
-              <strong id="currentDownstreamLevel">--</strong>
+              <div>
+                <strong id="currentDownstreamLevel">--</strong>
+                <small id="currentDownstreamUpdatedAt">--</small>
+              </div>
             </div>
             <div class="water-reading">
               <span>上流</span>
-              <strong id="currentUpstreamLevel">--</strong>
+              <div>
+                <strong id="currentUpstreamLevel">--</strong>
+                <small id="currentUpstreamUpdatedAt">--</small>
+              </div>
             </div>
           </div>
         </article>
@@ -83,10 +89,12 @@
               <div>
                 <dt>下流</dt>
                 <dd id="mobileDownstreamLevel">--</dd>
+                <dd id="mobileDownstreamUpdatedAt" class="water-updated-at">--</dd>
               </div>
               <div>
                 <dt>上流</dt>
                 <dd id="mobileUpstreamLevel">--</dd>
+                <dd id="mobileUpstreamUpdatedAt" class="water-updated-at">--</dd>
               </div>
             </dl>
           </aside>

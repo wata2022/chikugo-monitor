@@ -305,6 +305,12 @@ button {
   overflow-wrap: anywhere;
 }
 
+.mobile-water-panel .water-updated-at {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
 .chart {
   width: 100%;
   height: min(66vh, 660px);
@@ -431,6 +437,10 @@ button {
   .mobile-water-panel dt,
   .mobile-water-panel dd {
     font-size: 0.62rem;
+  }
+
+  .mobile-water-panel .water-updated-at {
+    font-size: 0.5rem;
   }
 
   .chart {

@@ -65,13 +65,29 @@ def parse_update_year(page_text: str) -> int:
     return 2000 + int(match.group(1))
 
 
+def parse_update_datetime(page_text: str) -> dt.datetime:
+    """Extracts the source page update timestamp."""
+    match = UPDATE_RE.search(page_text)
+    if match is None:
+        raise ValueError("Could not find the page update timestamp.")
+    return normalize_datetime(
+        2000 + int(match.group(1)),
+        int(match.group(2)),
+        int(match.group(3)),
+        int(match.group(4)),
+        int(match.group(5)),
+    )
+
+
 def parse_water_level(
     page_text: str,
     value_column: str = "water_level_tpm",
     label_column: str = "source_label",
+    updated_at_column: str = "source_updated_at",
 ) -> pd.DataFrame:
     """Parses water-level rows from a source page."""
-    year = parse_update_year(page_text)
+    updated_at = parse_update_datetime(page_text)
+    year = updated_at.year
     soup = BeautifulSoup(page_text, "html.parser")
     plain_text = soup.get_text(" ", strip=True)
 
@@ -87,6 +103,7 @@ def parse_water_level(
                 "datetime": observed_at,
                 value_column: float(match.group(5)),
                 label_column: f"{month:02d}/{day:02d} {hour:02d}:{minute:02d}",
+                updated_at_column: updated_at,
             }
         )
 
@@ -95,9 +112,19 @@ def parse_water_level(
     return pd.DataFrame(rows).sort_values("datetime").reset_index(drop=True)
 
 
-def fetch_water_level(url: str, value_column: str, label_column: str) -> pd.DataFrame:
+def fetch_water_level(
+    url: str,
+    value_column: str,
+    label_column: str,
+    updated_at_column: str,
+) -> pd.DataFrame:
     """Fetches and parses one water-level page."""
-    return parse_water_level(fetch_source_html(url), value_column, label_column)
+    return parse_water_level(
+        fetch_source_html(url),
+        value_column,
+        label_column,
+        updated_at_column,
+    )
 
 
 def fetch_all_water_levels() -> pd.DataFrame:
@@ -106,11 +133,13 @@ def fetch_all_water_levels() -> pd.DataFrame:
         DOWNSTREAM_WATER_LEVEL_URL,
         "downstream_water_level_tpm",
         "downstream_source_label",
+        "downstream_updated_at",
     )
     upstream = fetch_water_level(
         UPSTREAM_WATER_LEVEL_URL,
         "upstream_water_level_tpm",
         "upstream_source_label",
+        "upstream_updated_at",
     )
     return pd.merge(downstream, upstream, on="datetime", how="outer").sort_values(
         "datetime"

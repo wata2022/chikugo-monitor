@@ -1,5 +1,5 @@
 const DATA_URL = "./merged.csv";
-const APP_VERSION = "v17";
+const APP_VERSION = "v18";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -14,6 +14,8 @@ const elements = {
   chart: document.getElementById("chart"),
   currentDownstreamLevel: document.getElementById("currentDownstreamLevel"),
   currentUpstreamLevel: document.getElementById("currentUpstreamLevel"),
+  currentDownstreamUpdatedAt: document.getElementById("currentDownstreamUpdatedAt"),
+  currentUpstreamUpdatedAt: document.getElementById("currentUpstreamUpdatedAt"),
   currentTideLevel: document.getElementById("currentTideLevel"),
   currentTideDetail: document.getElementById("currentTideDetail"),
   lastUpdated: document.getElementById("lastUpdated"),
@@ -26,6 +28,8 @@ const elements = {
   mobileDateLabel: document.getElementById("mobileDateLabel"),
   mobileDownstreamLevel: document.getElementById("mobileDownstreamLevel"),
   mobileUpstreamLevel: document.getElementById("mobileUpstreamLevel"),
+  mobileDownstreamUpdatedAt: document.getElementById("mobileDownstreamUpdatedAt"),
+  mobileUpstreamUpdatedAt: document.getElementById("mobileUpstreamUpdatedAt"),
   message: document.getElementById("message"),
   refreshButtons: [
     document.getElementById("refreshButton"),
@@ -84,6 +88,8 @@ function normalizeRows(rows) {
         datetime,
         downstream: toNumber(row[WATER_COLUMNS.downstream]),
         upstream: toNumber(row[WATER_COLUMNS.upstream]),
+        downstreamUpdatedAt: parseDate(row.downstream_updated_at),
+        upstreamUpdatedAt: parseDate(row.upstream_updated_at),
         tide: toNumber(row.tide_cm),
         tideName: String(row.tide_name ?? "").trim(),
         moonAge: toNumber(row.moon_age),
@@ -91,6 +97,15 @@ function normalizeRows(rows) {
     })
     .filter((row) => !Number.isNaN(row.datetime.getTime()))
     .sort((a, b) => a.datetime - b.datetime);
+}
+
+function parseDate(value) {
+  const text = String(value ?? "").trim();
+  if (!text) {
+    return null;
+  }
+  const date = new Date(text.replace(" ", "T"));
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function toNumber(value) {
@@ -197,6 +212,8 @@ function updateMetrics() {
   if (!latest) {
     elements.currentDownstreamLevel.textContent = "--";
     elements.currentUpstreamLevel.textContent = "--";
+    elements.currentDownstreamUpdatedAt.textContent = "--";
+    elements.currentUpstreamUpdatedAt.textContent = "--";
     elements.currentTideLevel.textContent = "--";
     elements.currentTideDetail.textContent = "若津";
     elements.lastUpdated.textContent = "--";
@@ -209,6 +226,8 @@ function updateMetrics() {
     elements.mobileDateLabel.textContent = "--";
     elements.mobileDownstreamLevel.textContent = "--";
     elements.mobileUpstreamLevel.textContent = "--";
+    elements.mobileDownstreamUpdatedAt.textContent = "--";
+    elements.mobileUpstreamUpdatedAt.textContent = "--";
     return;
   }
 
@@ -224,6 +243,10 @@ function updateMetrics() {
 
   elements.currentDownstreamLevel.textContent = formatNumber(latest.downstream, "TPm");
   elements.currentUpstreamLevel.textContent = formatNumber(latest.upstream, "TPm");
+  elements.currentDownstreamUpdatedAt.textContent = `更新 ${formatDateTime(latest.downstreamUpdatedAt)}`;
+  elements.currentUpstreamUpdatedAt.textContent = `更新 ${formatDateTime(latest.upstreamUpdatedAt)}`;
+  elements.currentDownstreamLevel.title = `下流更新 ${formatDateTime(latest.downstreamUpdatedAt)}`;
+  elements.currentUpstreamLevel.title = `上流更新 ${formatDateTime(latest.upstreamUpdatedAt)}`;
   elements.currentTideLevel.textContent = formatNumber(latest.tide, "cm", 0);
   elements.currentTideDetail.textContent = formatTideMeta(latest);
   elements.lastUpdated.textContent = formatDateTime(latest.datetime);
@@ -238,6 +261,10 @@ function updateMetrics() {
   elements.mobileDateLabel.textContent = formatLongDate(latest.datetime);
   elements.mobileDownstreamLevel.textContent = formatNumber(latest.downstream, "TPm");
   elements.mobileUpstreamLevel.textContent = formatNumber(latest.upstream, "TPm");
+  elements.mobileDownstreamUpdatedAt.textContent = formatDateTime(latest.downstreamUpdatedAt);
+  elements.mobileUpstreamUpdatedAt.textContent = formatDateTime(latest.upstreamUpdatedAt);
+  elements.mobileDownstreamLevel.title = `下流更新 ${formatDateTime(latest.downstreamUpdatedAt)}`;
+  elements.mobileUpstreamLevel.title = `上流更新 ${formatDateTime(latest.upstreamUpdatedAt)}`;
 }
 
 function drawChart() {
