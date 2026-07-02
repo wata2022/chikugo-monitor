@@ -83,8 +83,8 @@ class TideMergeTest(unittest.TestCase):
         self.assertEqual(merged.iloc[-1]["downstream_water_level_tpm"], 2.7)
         self.assertTrue(pd.isna(merged.iloc[-1]["tide_cm"]))
 
-    def test_default_frequency_is_ten_minutes(self) -> None:
-        self.assertEqual(stage2_water_tide.DEFAULT_FREQUENCY, "10min")
+    def test_default_frequency_is_hourly(self) -> None:
+        self.assertEqual(stage2_water_tide.DEFAULT_FREQUENCY, "1h")
 
     def test_merge_hourly_keeps_tide_when_water_is_empty(self) -> None:
         water_level = pd.DataFrame(
