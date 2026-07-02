@@ -17,7 +17,8 @@ const elements = {
   currentTideDetail: document.getElementById("currentTideDetail"),
   lastUpdated: document.getElementById("lastUpdated"),
   rowCount: document.getElementById("rowCount"),
-  waterHistoryBody: document.getElementById("waterHistoryBody"),
+  downstreamHistoryBody: document.getElementById("downstreamHistoryBody"),
+  upstreamHistoryBody: document.getElementById("upstreamHistoryBody"),
   message: document.getElementById("message"),
   refreshButton: document.getElementById("refreshButton"),
   rangeButtons: Array.from(document.querySelectorAll(".range-button")),
@@ -177,28 +178,32 @@ function updateMetrics() {
   elements.rowCount.textContent = `${state.rows.length}件`;
 }
 
-function renderWaterHistory(rows) {
+function renderWaterHistoryTable(body, rows, key) {
   const waterRows = rows
-    .filter((row) => row.downstream !== null || row.upstream !== null)
+    .filter((row) => row[key] !== null)
     .slice()
     .reverse();
 
   if (!waterRows.length) {
-    elements.waterHistoryBody.innerHTML = '<tr><td colspan="3">水位データがありません</td></tr>';
+    body.innerHTML = '<tr><td colspan="2">水位データがありません</td></tr>';
     return;
   }
 
-  elements.waterHistoryBody.innerHTML = waterRows
+  body.innerHTML = waterRows
     .map(
       (row) => `
         <tr>
           <td>${formatDateTime(row.datetime)}</td>
-          <td>${formatNumber(row.downstream, "TPm")}</td>
-          <td>${formatNumber(row.upstream, "TPm")}</td>
+          <td>${formatNumber(row[key], "TPm")}</td>
         </tr>
       `
     )
     .join("");
+}
+
+function renderWaterHistory(rows) {
+  renderWaterHistoryTable(elements.downstreamHistoryBody, rows, "downstream");
+  renderWaterHistoryTable(elements.upstreamHistoryBody, rows, "upstream");
 }
 
 function drawChart() {

@@ -1,5 +1,5 @@
 const DATA_URL = "./merged.csv";
-const APP_VERSION = "v15";
+const APP_VERSION = "v16";
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -18,7 +18,8 @@ const elements = {
   currentTideDetail: document.getElementById("currentTideDetail"),
   lastUpdated: document.getElementById("lastUpdated"),
   rowCount: document.getElementById("rowCount"),
-  waterHistoryBody: document.getElementById("waterHistoryBody"),
+  downstreamHistoryBody: document.getElementById("downstreamHistoryBody"),
+  upstreamHistoryBody: document.getElementById("upstreamHistoryBody"),
   mobileCurrentTide: document.getElementById("mobileCurrentTide"),
   mobileTideTrend: document.getElementById("mobileTideTrend"),
   mobileMoonIcon: document.getElementById("mobileMoonIcon"),
@@ -241,28 +242,32 @@ function updateMetrics() {
   elements.mobileUpstreamLevel.textContent = formatNumber(latest.upstream, "TPm");
 }
 
-function renderWaterHistory(rows) {
+function renderWaterHistoryTable(body, rows, key) {
   const waterRows = rows
-    .filter((row) => row.downstream !== null || row.upstream !== null)
+    .filter((row) => row[key] !== null)
     .slice()
     .reverse();
 
   if (!waterRows.length) {
-    elements.waterHistoryBody.innerHTML = '<tr><td colspan="3">水位データがありません</td></tr>';
+    body.innerHTML = '<tr><td colspan="2">水位データがありません</td></tr>';
     return;
   }
 
-  elements.waterHistoryBody.innerHTML = waterRows
+  body.innerHTML = waterRows
     .map(
       (row) => `
         <tr>
           <td>${formatDateTime(row.datetime)}</td>
-          <td>${formatNumber(row.downstream, "TPm")}</td>
-          <td>${formatNumber(row.upstream, "TPm")}</td>
+          <td>${formatNumber(row[key], "TPm")}</td>
         </tr>
       `
     )
     .join("");
+}
+
+function renderWaterHistory(rows) {
+  renderWaterHistoryTable(elements.downstreamHistoryBody, rows, "downstream");
+  renderWaterHistoryTable(elements.upstreamHistoryBody, rows, "upstream");
 }
 
 function drawChart() {

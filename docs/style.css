@@ -334,6 +334,18 @@ button {
   line-height: 1.25;
 }
 
+.history-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.history-card h3 {
+  margin: 0 0 8px;
+  color: #76f7ff;
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
 .history-table-wrap {
   max-height: 330px;
   overflow: auto;
@@ -380,6 +392,10 @@ button {
     border-right: 1px solid rgba(255, 255, 255, 0.14);
     border-left: 1px solid rgba(255, 255, 255, 0.14);
     box-shadow: 0 0 46px rgba(0, 0, 0, 0.45);
+  }
+
+  .history-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
