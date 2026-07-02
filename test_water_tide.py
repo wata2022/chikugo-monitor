@@ -132,6 +132,26 @@ class TideMergeTest(unittest.TestCase):
         self.assertEqual(merged.iloc[-1]["datetime"], pd.Timestamp("2026-07-01 10:00"))
         self.assertEqual(merged.iloc[-1]["tide_cm"], 460)
 
+    def test_read_previous_water_level_uses_existing_csv(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            previous_path = Path(temp_dir) / "merged.csv"
+            previous_path.write_text(
+                "datetime,downstream_water_level_tpm,upstream_water_level_tpm,"
+                "downstream_updated_at,upstream_updated_at,tide_cm\n"
+                "2026-07-01 09:00:00,2.4,3.1,"
+                "2026-07-01 10:10:00,2026-07-01 10:20:00,450\n",
+                encoding="utf-8",
+            )
+
+            water_level = stage2_water_tide.read_previous_water_level([previous_path])
+
+        self.assertEqual(len(water_level), 1)
+        self.assertEqual(
+            water_level.loc[0, "datetime"],
+            pd.Timestamp("2026-07-01 09:00:00"),
+        )
+        self.assertEqual(water_level.loc[0, "downstream_water_level_tpm"], 2.4)
+
     def test_parse_tide736_response(self) -> None:
         response_json = {
             "status": 1,

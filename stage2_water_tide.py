@@ -261,14 +261,59 @@ def fetch_tide736_data(
         "dy": int(start_time.day),
         "rg": "week",
     }
-    response = requests.get(
+    response = stage1_water_level.get_with_retries(
         TIDE736_API_URL,
         params=params,
         headers={"User-Agent": "ChikugoWaterTideGraph/1.0"},
         timeout=stage1_water_level.HTTP_TIMEOUT_SECONDS,
     )
-    response.raise_for_status()
     return parse_tide736_response(response.json()).reset_index(drop=True)
+
+
+def read_previous_water_level(paths: Sequence[Path]) -> pd.DataFrame:
+    """Loads previous water rows so a transient source failure does not erase them."""
+    columns = [
+        "datetime",
+        "downstream_water_level_tpm",
+        "upstream_water_level_tpm",
+        "downstream_updated_at",
+        "upstream_updated_at",
+    ]
+    errors: list[str] = []
+    for path in paths:
+        if not path.exists():
+            errors.append(f"{path} was not found")
+            continue
+        try:
+            data_frame = pd.read_csv(path, encoding="utf-8-sig")
+        except (OSError, pd.errors.ParserError) as error:
+            errors.append(f"{path}: {error}")
+            continue
+        if "datetime" not in data_frame.columns:
+            errors.append(f"{path}: datetime column was not found")
+            continue
+
+        available_columns = [column for column in columns if column in data_frame.columns]
+        water_columns = [column for column in WATER_COLUMNS if column in available_columns]
+        if not water_columns:
+            errors.append(f"{path}: water-level columns were not found")
+            continue
+
+        water_level = data_frame[available_columns].copy()
+        water_level["datetime"] = pd.to_datetime(water_level["datetime"], errors="coerce")
+        for column in water_columns:
+            water_level[column] = pd.to_numeric(water_level[column], errors="coerce")
+        for column in WATER_UPDATED_AT_COLUMNS:
+            if column in water_level.columns:
+                water_level[column] = pd.to_datetime(water_level[column], errors="coerce")
+        water_level = water_level.dropna(subset=["datetime"]).sort_values("datetime")
+        water_level = water_level.drop_duplicates("datetime", keep="last")
+        if water_level[water_columns].dropna(how="all").empty:
+            errors.append(f"{path}: no usable water-level rows were found")
+            continue
+        return water_level.reset_index(drop=True)
+
+    raise ValueError("Could not load previous water-level data: " + "; ".join(errors))
 
 
 def load_tide_data(args: argparse.Namespace, water_level: pd.DataFrame) -> pd.DataFrame:
@@ -653,18 +698,32 @@ def main() -> int:
             )
         except (OSError, requests.RequestException, ValueError) as error:
             print(
-                f"Water-level fetch failed; continuing with tide-only data: {error}",
+                f"Water-level fetch failed; trying previous water data: {error}",
                 file=sys.stderr,
             )
-            water_level = pd.DataFrame(
-                columns=[
-                    "datetime",
-                    "downstream_water_level_tpm",
-                    "upstream_water_level_tpm",
-                    "downstream_updated_at",
-                    "upstream_updated_at",
-                ]
-            )
+            try:
+                water_level = read_previous_water_level(
+                    [stage1_water_level.WATER_LEVEL_CSV_PATH, args.merged_csv]
+                )
+                print(
+                    "Using previous water-level data because the latest fetch failed.",
+                    file=sys.stderr,
+                )
+            except ValueError as fallback_error:
+                print(
+                    f"Previous water-level data was unavailable; continuing with "
+                    f"tide-only data: {fallback_error}",
+                    file=sys.stderr,
+                )
+                water_level = pd.DataFrame(
+                    columns=[
+                        "datetime",
+                        "downstream_water_level_tpm",
+                        "upstream_water_level_tpm",
+                        "downstream_updated_at",
+                        "upstream_updated_at",
+                    ]
+                )
         tide = load_tide_data(args, water_level)
         merged = merge_hourly(water_level, tide, args.frequency)
         merged.to_csv(args.merged_csv, index=False, encoding="utf-8-sig")

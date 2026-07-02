@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import re
 import sys
+import time
 from pathlib import Path
 
 import matplotlib.dates as mdates
@@ -17,6 +18,8 @@ from bs4 import BeautifulSoup
 DOWNSTREAM_WATER_LEVEL_URL = "https://ckgoozeki.jp/mobile2-6.htm"
 UPSTREAM_WATER_LEVEL_URL = "https://ckgoozeki.jp/mobile2-5.htm"
 HTTP_TIMEOUT_SECONDS = 15
+HTTP_RETRY_ATTEMPTS = 3
+HTTP_RETRY_DELAY_SECONDS = 10
 WATER_LEVEL_CSV_PATH = Path("water_level.csv")
 WATER_LEVEL_PNG_PATH = Path("water_level.png")
 
@@ -45,14 +48,42 @@ def normalize_datetime(
     return dt.datetime(year, month, day, hour, minute)
 
 
+def get_with_retries(
+    url: str,
+    *,
+    attempts: int = HTTP_RETRY_ATTEMPTS,
+    delay_seconds: int = HTTP_RETRY_DELAY_SECONDS,
+    **kwargs: object,
+) -> requests.Response:
+    """Fetches a URL, retrying transient request failures."""
+    last_error: requests.RequestException | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            response = requests.get(url, **kwargs)
+            response.raise_for_status()
+            return response
+        except requests.RequestException as error:
+            last_error = error
+            if attempt == attempts:
+                break
+            print(
+                f"Request failed ({attempt}/{attempts}); retrying in "
+                f"{delay_seconds}s: {url}: {error}",
+                file=sys.stderr,
+            )
+            time.sleep(delay_seconds)
+    if last_error is None:
+        raise requests.RequestException(f"Request failed without an error: {url}")
+    raise last_error
+
+
 def fetch_source_html(url: str = DOWNSTREAM_WATER_LEVEL_URL) -> str:
     """Fetches a source page as Shift_JIS text."""
-    response = requests.get(
+    response = get_with_retries(
         url,
         headers={"User-Agent": "ChikugoWaterLevelGraph/1.0"},
         timeout=HTTP_TIMEOUT_SECONDS,
     )
-    response.raise_for_status()
     response.encoding = "shift_jis"
     return response.text
 
