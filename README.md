@@ -21,7 +21,7 @@ GitHub Pagesで公開するファイルは `docs/` にまとめています。
 - `docs/icons/icon-192.png`
 - `docs/icons/icon-512.png`
 
-PWAは `docs/merged.csv` を読み込み、Plotlyで水位と潮位のグラフを表示します。更新ボタンを押すと、GitHub Pages上の最新 `merged.csv` を再取得します。
+PWAは `docs/merged.csv` を読み込み、Plotlyで水位と潮位のグラフを表示します。更新ボタンは、Cloudflare WorkerのURLを設定している場合はGitHub Actionsを起動し、元データを再取得します。未設定の場合は、GitHub Pages上の最新 `merged.csv` を再取得します。
 
 ## GitHub Pagesの設定方法
 
@@ -52,7 +52,7 @@ python stage2_water_tide.py --merged-csv docs/merged.csv
 
 `.github/workflows/update.yml` を用意しています。内容は以下です。
 
-- 毎時5分に自動実行
+- 10分ごとに自動実行
 - 手動実行も可能
 - Python依存関係をインストール
 - `stage2_water_tide.py` を実行
@@ -66,6 +66,42 @@ python stage2_water_tide.py --merged-csv docs/merged.csv
 4. `Save` します。
 
 手動実行する場合は、GitHubの `Actions` タブから `Update monitor data` を選び、`Run workflow` を押します。
+
+## アプリの更新ボタンで元データを更新する
+
+GitHub Pagesは静的サイトなので、ブラウザからPythonを直接実行できません。アプリの更新ボタンで元データを取りに行くには、Cloudflare WorkerからGitHub Actionsの `workflow_dispatch` を呼び出します。
+
+Worker本体は `cloudflare-worker/update-trigger.js` です。
+
+Cloudflare Workerに設定する環境変数:
+
+```text
+GITHUB_TOKEN=GitHub Actionsを起動できるトークン
+UPDATE_KEY=自分だけが知っている更新キー
+ALLOWED_ORIGIN=https://wata2022.github.io
+GITHUB_OWNER=wata2022
+GITHUB_REPO=chikugo-monitor
+GITHUB_WORKFLOW_ID=update.yml
+GITHUB_REF=master
+```
+
+`GITHUB_TOKEN` と `UPDATE_KEY` は必ずWorkerのSecretとして設定し、リポジトリには書かないでください。
+
+GitHub fine-grained tokenの権限:
+
+```text
+Repository: wata2022/chikugo-monitor
+Actions: Read and write
+Contents: Read-only
+```
+
+Cloudflare Workerを公開したら、`docs/app.js` と `app.js` の `UPDATE_TRIGGER_URL` にWorkerのURLを設定します。
+
+```js
+const UPDATE_TRIGGER_URL = "https://your-worker-name.your-subdomain.workers.dev";
+```
+
+更新ボタンを押すと更新キーの入力欄が表示されます。正しい更新キーを入力した場合だけ、GitHub Actionsが起動します。
 
 ## ローカル確認
 

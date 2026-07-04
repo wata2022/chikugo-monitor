@@ -1,4 +1,7 @@
 const DATA_URL = "./merged.csv";
+const UPDATE_TRIGGER_URL = "";
+const UPDATE_POLL_ATTEMPTS = 12;
+const UPDATE_POLL_INTERVAL_MS = 10000;
 const WATER_COLUMNS = {
   downstream: "downstream_water_level_tpm",
   upstream: "upstream_water_level_tpm",
@@ -151,6 +154,24 @@ function getLatestRow(rows) {
     }
   }
   return null;
+}
+
+function getLatestSourceUpdatedAt(rows) {
+  let latestTime = 0;
+  rows.forEach((row) => {
+    [row.downstreamUpdatedAt, row.upstreamUpdatedAt].forEach((date) => {
+      if (date instanceof Date && !Number.isNaN(date.getTime())) {
+        latestTime = Math.max(latestTime, date.getTime());
+      }
+    });
+  });
+  return latestTime ? new Date(latestTime) : null;
+}
+
+function sleep(milliseconds) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, milliseconds);
+  });
 }
 
 function getFilteredRows(rows, days) {
@@ -313,25 +334,100 @@ function drawChart() {
 }
 
 async function loadData({ quiet = false } = {}) {
-  elements.refreshButton.disabled = true;
   if (!quiet) {
     elements.message.textContent = "更新中...";
   }
 
-  try {
-    const response = await fetch(`${DATA_URL}?v=${Date.now()}`, {
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    const text = await response.text();
-    state.rows = normalizeRows(parseCsv(text));
-    updateMetrics();
-    drawChart();
+  const response = await fetch(`${DATA_URL}?v=${Date.now()}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+  const text = await response.text();
+  state.rows = normalizeRows(parseCsv(text));
+  updateMetrics();
+  drawChart();
+  if (!quiet) {
     elements.message.textContent = `更新しました: ${formatDateTime(new Date())}`;
+  }
+}
+
+async function reloadData({ quiet = false } = {}) {
+  elements.refreshButton.disabled = true;
+
+  try {
+    await loadData({ quiet });
   } catch (error) {
     elements.message.textContent = `データを取得できませんでした: ${error.message}`;
+  } finally {
+    elements.refreshButton.disabled = false;
+  }
+}
+
+async function triggerRemoteUpdate() {
+  if (!UPDATE_TRIGGER_URL) {
+    return false;
+  }
+
+  const updateKey = window.prompt("更新キーを入力してください");
+  if (!updateKey) {
+    throw new Error("更新キーが入力されていません");
+  }
+
+  const response = await fetch(UPDATE_TRIGGER_URL, {
+    method: "POST",
+    cache: "no-store",
+    headers: {
+      Authorization: `Bearer ${updateKey}`,
+    },
+  });
+  if (!response.ok) {
+    let message = `HTTP ${response.status}`;
+    try {
+      const body = await response.json();
+      if (body.error) {
+        message = body.error;
+      }
+    } catch (error) {
+      // Ignore non-JSON error bodies.
+    }
+    throw new Error(message);
+  }
+  return true;
+}
+
+async function refreshFromSource() {
+  elements.refreshButton.disabled = true;
+
+  try {
+    const previousUpdatedAt = getLatestSourceUpdatedAt(state.rows);
+    if (!UPDATE_TRIGGER_URL) {
+      await loadData();
+      return;
+    }
+
+    elements.message.textContent = "元データ更新を開始しています...";
+    await triggerRemoteUpdate();
+    elements.message.textContent = "元データ更新中...";
+
+    for (let attempt = 1; attempt <= UPDATE_POLL_ATTEMPTS; attempt += 1) {
+      await sleep(UPDATE_POLL_INTERVAL_MS);
+      await loadData({ quiet: true });
+      const currentUpdatedAt = getLatestSourceUpdatedAt(state.rows);
+      if (
+        currentUpdatedAt
+        && (!previousUpdatedAt || currentUpdatedAt.getTime() > previousUpdatedAt.getTime())
+      ) {
+        elements.message.textContent = `更新しました: ${formatDateTime(currentUpdatedAt)}`;
+        return;
+      }
+      elements.message.textContent = `元データ更新中... ${attempt}/${UPDATE_POLL_ATTEMPTS}`;
+    }
+
+    elements.message.textContent = "更新処理を開始しました。少し待って再度更新してください。";
+  } catch (error) {
+    elements.message.textContent = `データ更新を開始できませんでした: ${error.message}`;
   } finally {
     elements.refreshButton.disabled = false;
   }
@@ -347,7 +443,7 @@ function setRange(days) {
   drawChart();
 }
 
-elements.refreshButton.addEventListener("click", () => loadData());
+elements.refreshButton.addEventListener("click", () => refreshFromSource());
 elements.rangeButtons.forEach((button) => {
   button.addEventListener("click", () => setRange(Number(button.dataset.days)));
 });
@@ -362,4 +458,4 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-window.addEventListener("DOMContentLoaded", () => loadData({ quiet: true }));
+window.addEventListener("DOMContentLoaded", () => reloadData({ quiet: true }));

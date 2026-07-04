@@ -1,0 +1,10 @@
+name = "chikugo-monitor-update-trigger"
+main = "update-trigger.js"
+compatibility_date = "2026-07-04"
+
+[vars]
+ALLOWED_ORIGIN = "https://wata2022.github.io"
+GITHUB_OWNER = "wata2022"
+GITHUB_REPO = "chikugo-monitor"
+GITHUB_WORKFLOW_ID = "update.yml"
+GITHUB_REF = "master"
