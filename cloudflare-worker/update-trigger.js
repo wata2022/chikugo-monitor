@@ -83,10 +83,18 @@ export default {
     }
 
     try {
+      // Fail closed if deployment omitted the rate-limit binding.
+      if (!env.UPDATE_RATE_LIMITER) {
+        return jsonResponse({ error: "Update service is unavailable." }, 503, origin);
+      }
+      const { success } = await env.UPDATE_RATE_LIMITER.limit({ key: "monitor-update" });
+      if (!success) {
+        return jsonResponse({ error: "Too many updates. Please wait a minute." }, 429, origin);
+      }
       await dispatchWorkflow(env);
       return jsonResponse({ ok: true }, 202, origin);
     } catch (error) {
-      return jsonResponse({ error: error.message }, 502, origin);
+      return jsonResponse({ error: "Update service failed. Please try again later." }, 502, origin);
     }
   },
 };

@@ -8,3 +8,10 @@ GITHUB_OWNER = "wata2022"
 GITHUB_REPO = "chikugo-monitor"
 GITHUB_WORKFLOW_ID = "update.yml"
 GITHUB_REF = "master"
+
+# Select an account-unique namespace ID before deployment.
+# Approximate per-Cloudflare-location limit, not a worldwide hard quota.
+[[ratelimits]]
+name = "UPDATE_RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 1, period = 60 }
