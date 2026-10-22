@@ -28,6 +28,7 @@ jobs:
         run: |
           mkdir -p docs
           python stage2_water_tide.py \
+            --tide-csv tide_auto.csv \
             --merged-csv docs/merged.csv \
             --graph graph.png \
             --daily-graph-dir daily_graphs
