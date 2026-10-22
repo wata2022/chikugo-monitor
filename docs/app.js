@@ -1,6 +1,6 @@
 const DATA_URL = "./merged.csv";
 const UPDATE_TRIGGER_URL = "";
-const APP_VERSION = "v20";
+const APP_VERSION = "v21";
 const UPDATE_POLL_ATTEMPTS = 12;
 const UPDATE_POLL_INTERVAL_MS = 10000;
 const WATER_COLUMNS = {
@@ -112,6 +112,9 @@ function parseDate(value) {
 }
 
 function toNumber(value) {
+  if (value == null || String(value).trim() === "") {
+    return null;
+  }
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -323,7 +326,7 @@ function drawChart() {
         line: { color: "#ffffff", width: isMobile ? 1.4 : 1.6 },
       },
       hovertemplate: "%{x|%m/%d %H:%M}<br>下流 %{y:.2f} TPm<extra></extra>",
-      connectgaps: true,
+      connectgaps: false,
     },
     {
       x,
@@ -338,7 +341,7 @@ function drawChart() {
         line: { color: "#ffffff", width: isMobile ? 1.2 : 1.4 },
       },
       hovertemplate: "%{x|%m/%d %H:%M}<br>上流 %{y:.2f} TPm<extra></extra>",
-      connectgaps: true,
+      connectgaps: false,
     },
     {
       x,
@@ -354,7 +357,7 @@ function drawChart() {
         line: { color: "#ffffff", width: isMobile ? 1.2 : 1.4 },
       },
       hovertemplate: "%{x|%m/%d %H:%M}<br>潮位 %{y:.0f} cm<extra></extra>",
-      connectgaps: true,
+      connectgaps: false,
     },
   ];
 
