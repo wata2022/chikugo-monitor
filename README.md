@@ -103,6 +103,14 @@ const UPDATE_TRIGGER_URL = "https://your-worker-name.your-subdomain.workers.dev"
 
 更新ボタンを押すと更新キーの入力欄が表示されます。正しい更新キーを入力した場合だけ、GitHub Actionsが起動します。
 
+### 更新処理の安全対策
+
+- Workerのデプロイには `wrangler.toml.example` の `UPDATE_RATE_LIMITER` binding が必要です。namespace_id はアカウント内で未使用の値を選んでください。未設定・制限サービス障害時は更新を起動しません。
+- 認証後の更新要求をCloudflare拠点ごとに約1回/分へ制限します。これは世界全体の厳密な上限ではありません。Actions側も同時更新を直列化しています。
+- `requirements.txt` は間接依存を含めてバージョンを固定しています。更新時は専用環境で依存を更新し、Pythonテストと実データ取得を確認してから固定値を変更してください。
+- ActionsのSHAとPlotlyのSRIは、ライブラリ更新時に公式配布元を確認して更新してください。
+- JavaScriptの回帰テストは `node --test test_security.mjs` で実行できます。
+
 ## ローカル確認
 
 PWAとservice workerは `file://` では正しく動きません。ローカル確認はHTTPサーバーで行います。

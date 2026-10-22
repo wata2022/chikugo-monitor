@@ -98,6 +98,9 @@ function parseDate(value) {
 }
 
 function toNumber(value) {
+  if (value == null || String(value).trim() === "") {
+    return null;
+  }
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -237,7 +240,7 @@ function drawChart() {
       line: { color: "#1667b7", width: 3 },
       marker: { size: 6 },
       hovertemplate: "%{x|%m/%d %H:%M}<br>下流 %{y:.2f} TPm<extra></extra>",
-      connectgaps: true,
+      connectgaps: false,
     },
     {
       x,
@@ -248,7 +251,7 @@ function drawChart() {
       line: { color: "#15803d", width: 2 },
       marker: { size: 5 },
       hovertemplate: "%{x|%m/%d %H:%M}<br>上流 %{y:.2f} TPm<extra></extra>",
-      connectgaps: true,
+      connectgaps: false,
     },
     {
       x,
@@ -265,7 +268,7 @@ function drawChart() {
       marker: { size: 5 },
       hovertemplate:
         "%{x|%m/%d %H:%M}<br>潮位 %{y:.0f} cm<br>潮名 %{customdata[0]}<br>月齢 %{customdata[1]}<extra></extra>",
-      connectgaps: true,
+      connectgaps: false,
     },
   ];
 
